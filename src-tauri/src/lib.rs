@@ -1,4 +1,5 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
+use tauri_plugin_store::StoreExt;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -37,7 +38,13 @@ pub fn run() {
                 .add_migrations("sqlite:bookmarks.tmp", migrations)
                 .build(),
         )
-        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(tauri_plugin_store::Builder::default().build())
+        .setup(|app| {
+            let store = app.store("config.json")?;
+            store.set("dbPath", "");
+            store.close_resource();
+            Ok(())
+        })
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_opener::init())
