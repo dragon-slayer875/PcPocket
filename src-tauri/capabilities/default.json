@@ -10,6 +10,7 @@
     "opener:default",
     "dialog:default",
     "store:default",
-    "sql:default"
+    "sql:default",
+    "fs:default"
   ]
 }
