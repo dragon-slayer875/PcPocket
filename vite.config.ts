@@ -13,10 +13,7 @@ export default defineConfig(async () => ({
     TanStackRouterVite({
       target: "react",
       autoCodeSplitting: true,
-      routesDirectory: "./src/routes",
-      generatedRouteTree: "./src/routes/routeTree.gen.ts",
     }),
-    ,
     react(),
     tailwindcss(),
   ],
