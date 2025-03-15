@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import { Import, Plus, PlusCircle } from "lucide-react";
 import { MainListItem } from "./ui/mainListItem";
 import { Separator } from "./ui/separator";
+import { MobileSearchBar } from "./ui/mobileSearchBar";
 
 export function HomeScreen() {
   const importBookmarksMutation = useImportBookmarksMutation();
@@ -59,6 +60,7 @@ export function HomeScreen() {
           {idx < data.length - 1 && <Separator />}
         </>
       ))}
+      <MobileSearchBar />
     </div>
   );
 }
