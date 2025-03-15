@@ -42,7 +42,6 @@ pub fn run() {
         .setup(|app| {
             let store = app.store("config.json")?;
             store.set("dbPath", "");
-            store.close_resource();
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
