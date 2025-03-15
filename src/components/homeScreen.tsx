@@ -58,14 +58,16 @@ export function HomeScreen() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-2">
-      {data.map((bookmark, idx) => (
-        <>
-          <MainListItem key={bookmark.id} bookmark={bookmark} />
-          {idx < data.length - 1 && <Separator key={idx} decorative />}
-        </>
-      ))}
+    <>
+      <div className="flex flex-1 flex-col gap-2">
+        {data.map((bookmark, idx) => (
+          <>
+            <MainListItem key={bookmark.id} bookmark={bookmark} />
+            {idx < data.length - 1 && <Separator key={idx} decorative />}
+          </>
+        ))}
+      </div>
       <MobileSearchBar />
-    </div>
+    </>
   );
 }
