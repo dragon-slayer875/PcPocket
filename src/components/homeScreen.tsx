@@ -5,6 +5,7 @@ import {
 import { Button } from "./ui/button";
 import { Import, Plus, PlusCircle } from "lucide-react";
 import { MainListItem } from "./ui/mainListItem";
+import { Separator } from "./ui/separator";
 
 export function HomeScreen() {
   const importBookmarksMutation = useImportBookmarksMutation();
@@ -33,7 +34,7 @@ export function HomeScreen() {
         </div>
         <div className="flex flex-col gap-2 p-5 self-end sm:self-baseline">
           <Button
-            onClick={function() {
+            onClick={function () {
               importBookmarksMutation.mutate();
             }}
             className="flex justify-between"
@@ -52,8 +53,11 @@ export function HomeScreen() {
 
   return (
     <div className="flex flex-1 flex-col gap-2">
-      {data.map((bookmark) => (
-        <MainListItem key={bookmark.id} bookmark={bookmark} />
+      {data.map((bookmark, idx) => (
+        <>
+          <MainListItem key={bookmark.id} bookmark={bookmark} />
+          {idx < data.length - 1 && <Separator />}
+        </>
       ))}
     </div>
   );
