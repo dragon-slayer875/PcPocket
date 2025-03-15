@@ -2,6 +2,7 @@ import { useCreateDbMutation, useOpenDbMutation } from "@/lib/queries";
 import { Button } from "./ui/button";
 import { FolderOpen, PlusCircle } from "lucide-react";
 import { SiGithub } from "@icons-pack/react-simple-icons";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export function InitScreen() {
   const createDbMutation = useCreateDbMutation();
@@ -34,16 +35,17 @@ export function InitScreen() {
           <span>Open Database</span>
           <FolderOpen />
         </Button>
-        <a href="https://www.github.com" target="_blank" className="flex">
-          <Button
-            size="lg"
-            variant="outline"
-            className="w-full flex items-center justify-between"
-          >
-            <span>View Source</span>
-            <SiGithub />
-          </Button>
-        </a>
+        <Button
+          size="lg"
+          variant="outline"
+          className="w-full flex items-center justify-between"
+          onClick={async function () {
+            await openUrl("https://www.github.com");
+          }}
+        >
+          <span>View Source</span>
+          <SiGithub />
+        </Button>
       </div>
     </div>
   );
