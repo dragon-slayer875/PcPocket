@@ -38,12 +38,17 @@ export function HomeScreen() {
             onClick={function () {
               importBookmarksMutation.mutate();
             }}
+            size={"lg"}
             className="flex justify-between"
           >
             <span>Import</span>
             <Import />
           </Button>
-          <Button variant="secondary" className="flex justify-between">
+          <Button
+            size={"lg"}
+            variant="secondary"
+            className="flex justify-between"
+          >
             <span>Create New</span>
             <Plus />
           </Button>
@@ -57,7 +62,7 @@ export function HomeScreen() {
       {data.map((bookmark, idx) => (
         <>
           <MainListItem key={bookmark.id} bookmark={bookmark} />
-          {idx < data.length - 1 && <Separator />}
+          {idx < data.length - 1 && <Separator key={idx} decorative />}
         </>
       ))}
       <MobileSearchBar />

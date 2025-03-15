@@ -30,11 +30,11 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
           <div className="overflow-hidden w-[180px] sm:w-sm">
             <h1
               role=""
-              className="overflow-ellipsis overflow-hidden whitespace-nowrap"
+              className="overflow-ellipsis overflow-hidden whitespace-nowrap select-none"
             >
               {bookmark.title}
             </h1>
-            <p className="text-gray-400 text-xs overflow-ellipsis overflow-hidden whitespace-nowrap">
+            <p className="text-gray-400 text-xs overflow-ellipsis overflow-hidden whitespace-nowrap select-none">
               {bookmark.link}
             </p>
           </div>

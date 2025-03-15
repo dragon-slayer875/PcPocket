@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 
@@ -35,12 +34,12 @@ export function MobileSearchBar() {
         isVisible ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0",
       )}
     >
-      <div className="relative flex items-center rounded-md bg-background shadow-lg">
+      <div className="relative flex items-center rounded-lg bg-background shadow-lg">
         <Search className="absolute left-3 h-4 w-4 text-muted-foreground" />
         <Input
           type="search"
           placeholder="Search..."
-          className="rounded-md border-none pl-10 pr-4 py-6 focus-visible:ring-offset-0"
+          className="rounded-lg border-none pl-10 pr-4 py-6 focus-visible:ring-offset-0"
         />
       </div>
     </div>
