@@ -21,15 +21,32 @@ type BookmarkLink = BookmarkItemBase & {
   children?: never;
 };
 
+export type BookmarkInsertItem = {
+  link: string;
+  title: string;
+  id?: number | undefined;
+  icon_link?: string | null | undefined;
+  created_at?: Date | undefined;
+};
+
 export type BookmarkItem = BookmarkFolder | BookmarkLink;
 
 export type BookmarkQueryItem = {
   id: number;
   title: string;
   link: string;
-  iconLink?: string;
-  createdAt: Date;
+  icon_link?: string;
+  created_at: Date;
   tags: string[];
+};
+
+export type BookmarkSelectItem = {
+  id: number;
+  title: string;
+  link: string;
+  icon_link?: string;
+  created_at: Date;
+  tag_name?: string;
 };
 
 export type BookmarkGetQueryResponse = {

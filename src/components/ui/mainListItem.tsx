@@ -2,24 +2,25 @@ import { EllipsisVertical, Globe } from "lucide-react";
 import { Button } from "./button";
 import { Badge } from "./badge";
 import { BookmarkQueryItem } from "src/types";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
   return (
     <div
-      className="p-1 flex gap-1 border border-gray-800 rounded-md"
+      className="p-1 flex gap-1  rounded-md"
       role="listitem"
       key={bookmark.id}
     >
       <div
-        onClick={function() {
-          window.open(bookmark.link, "_blank", "noopener, noreferrer");
+        onClick={async function() {
+          await openUrl(bookmark.link);
         }}
         className="cursor-pointer flex-1 flex gap-4 flex-col hover:bg-accent rounded-md p-4"
       >
         <div className="flex items-center rounded-md">
-          {bookmark.iconLink ? (
+          {bookmark.icon_link ? (
             <img
-              src={bookmark.iconLink}
+              src={bookmark.icon_link}
               alt={bookmark.title}
               className="h-7 w-7 mr-2.5"
             />

@@ -1,20 +1,30 @@
 import {
-  useInfiniteQuery,
+  // useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
+import { getBookmarks, importBookmarks } from "./utils";
+import { BookmarkQueryItem } from "@/types";
 
-const store = await load("config.json");
-store.set("dbPath", "");
+async function accessStore(mode: "get" | "set", key: string, value?: any) {
+  const store = await load("config.json");
+
+  if (mode === "get") {
+    return store.get(key);
+  }
+  if (mode === "set") {
+    await store.set(key, value);
+  }
+}
 
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
     queryFn: async function() {
-      return store.get("dbPath");
+      return accessStore("get", "dbPath");
     },
   });
 }
@@ -26,7 +36,7 @@ export function useCreateDbMutation() {
       return save();
     },
     async onSuccess(dbPath) {
-      await store.set("dbPath", dbPath);
+      await accessStore("set", "dbPath", dbPath);
       queryClient.invalidateQueries({ queryKey: ["dbPath"] });
     },
   });
@@ -39,7 +49,7 @@ export function useOpenDbMutation() {
       return open();
     },
     async onSuccess(dbPath) {
-      await store.set("dbPath", dbPath);
+      await accessStore("set", "dbPath", dbPath);
       queryClient.invalidateQueries({ queryKey: ["dbPath"] });
     },
   });
@@ -49,18 +59,11 @@ export function useGetBookmarksQuery(
   pageSize: number | "all",
   cursor?: number,
 ) {
-  return useInfiniteQuery({
+  return useQuery({
     queryKey: ["bookmarks", pageSize, cursor],
     queryFn: async () => {
-      const bookmarks = await window.bookmarksAPI.get(pageSize, cursor);
+      const bookmarks: BookmarkQueryItem[] = await getBookmarks();
       return bookmarks;
-    },
-    initialPageParam: undefined,
-    getNextPageParam: (lastPage) => {
-      lastPage.nextStartIndex;
-    },
-    getPreviousPageParam: (firstPage) => {
-      firstPage.prevStartIndex;
     },
   });
 }
@@ -68,7 +71,10 @@ export function useGetBookmarksQuery(
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: window.bookmarksAPI.import,
+    mutationFn: async function() {
+      const path = await open();
+      if (path) await importBookmarks(path);
+    },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
     },

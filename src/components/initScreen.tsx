@@ -7,14 +7,14 @@ export function InitScreen() {
   const createDbMutation = useCreateDbMutation();
   const openDbMutation = useOpenDbMutation();
   return (
-    <div className="flex-1 grid grid-rows-2 sm:max-w-sm">
+    <div className="flex-1 grid gap-5 grid-rows-2 sm:max-w-sm">
       <h1 className="text-4xl sm:text-5xl mx-auto mt-auto">
         Welcome to <br />{" "}
         <span className="text-amber-200 font-bold">Pookie!</span>
       </h1>
-      <div className="flex flex-col gap-2 p-5 self-end sm:self-baseline">
+      <div className="flex flex-col gap-2 self-end sm:self-baseline">
         <Button
-          onClick={function() {
+          onClick={function () {
             createDbMutation.mutate();
           }}
           size="lg"
@@ -24,7 +24,7 @@ export function InitScreen() {
           <PlusCircle />
         </Button>
         <Button
-          onClick={function() {
+          onClick={function () {
             openDbMutation.mutate();
           }}
           size="lg"
