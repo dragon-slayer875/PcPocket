@@ -12,10 +12,10 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
       key={bookmark.id}
     >
       <div
-        onClick={async function() {
+        onClick={async function () {
           await openUrl(bookmark.link);
         }}
-        className="cursor-pointer flex-1 flex gap-4 flex-col hover:bg-accent rounded-md p-4"
+        className="cursor-pointer flex-1 flex gap-4 flex-col hover:bg-accent active:bg-accent rounded-md p-4"
       >
         <div className="flex items-center rounded-md">
           {bookmark.icon_link ? (
@@ -52,7 +52,7 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
       <Button
         className="self-center h-full"
         variant={"ghost"}
-        onClick={function() {
+        onClick={function () {
           console.log("Edit");
         }}
       >
