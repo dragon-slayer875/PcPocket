@@ -8,6 +8,8 @@ import { save, open } from "@tauri-apps/plugin-dialog";
 import { load } from "@tauri-apps/plugin-store";
 import { getBookmarks, importBookmarks } from "./utils";
 import { BookmarkQueryItem } from "@/types";
+import { useNavigate } from "@tanstack/react-router";
+import { Route } from "@/routes/main";
 
 async function accessStore(mode: "get" | "set", key: string, value?: any) {
   const store = await load("config.json");
@@ -23,20 +25,25 @@ async function accessStore(mode: "get" | "set", key: string, value?: any) {
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
-    queryFn: async function() {
+    queryFn: async function () {
       return accessStore("get", "dbPath");
     },
   });
 }
 
 export function useCreateDbMutation() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       return save();
     },
     async onSuccess(dbPath) {
       await accessStore("set", "dbPath", dbPath);
+      navigate({
+        to: Route.to,
+        replace: true,
+      });
       queryClient.invalidateQueries({ queryKey: ["dbPath"] });
     },
   });
@@ -45,7 +52,7 @@ export function useCreateDbMutation() {
 export function useOpenDbMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       return open();
     },
     async onSuccess(dbPath) {
@@ -71,7 +78,7 @@ export function useGetBookmarksQuery(
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       const path = await open();
       if (path) await importBookmarks(path);
     },
