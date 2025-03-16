@@ -1,3 +1,3 @@
-package com.taggie_gator.app
+package com.pcpocket.app
 
 class MainActivity : TauriActivity()
