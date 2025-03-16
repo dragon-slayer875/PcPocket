@@ -1,3 +1,5 @@
+use std::path::Path;
+use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
 
@@ -40,8 +42,16 @@ pub fn run() {
         )
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
-            let store = app.store("config.json")?;
-            store.set("dbPath", "");
+            let config_path = app.path().app_data_dir().unwrap().join("config.json");
+
+            if Path::new(&config_path).try_exists().unwrap() {
+                app.get_webview_window("main")
+                    .unwrap()
+                    .eval("window.location.replace('main')")?;
+            } else {
+                let store = app.store("config.json")?;
+                store.set("dbPath", "");
+            }
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
