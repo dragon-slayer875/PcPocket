@@ -21,12 +21,27 @@ import {
 } from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 
 export function AddBookmarkDrawerDialog() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 640px)");
+
+  useEffect(() => {
+    window.androidBackCallback = function() {
+      if (open) {
+        setOpen(false);
+        return false;
+      }
+      return true;
+    };
+    return () => {
+      window.androidBackCallback = function() {
+        return true;
+      };
+    };
+  }, [open]);
 
   if (isDesktop) {
     return (
