@@ -38,6 +38,7 @@ android {
         storeFile = file(keystoreProperties["storeFile"] as String)
         storePassword = keystoreProperties["password"] as String
     }
+    }
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
