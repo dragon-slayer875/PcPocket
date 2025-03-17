@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/lib/hooks";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,17 +18,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
+import { InsertBookmarkForm } from "../insertBookmarkForm";
 
 export function AddBookmarkDrawerDialog() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 640px)");
 
   useEffect(() => {
-    window.androidBackCallback = function() {
+    window.androidBackCallback = function () {
       if (open) {
         setOpen(false);
         return false;
@@ -37,7 +35,7 @@ export function AddBookmarkDrawerDialog() {
       return true;
     };
     return () => {
-      window.androidBackCallback = function() {
+      window.androidBackCallback = function () {
         return true;
       };
     };
@@ -56,7 +54,7 @@ export function AddBookmarkDrawerDialog() {
               Add a new bookmark to your current database.
             </DialogDescription>
           </DialogHeader>
-          <ProfileForm />
+          <InsertBookmarkForm />
         </DialogContent>
       </Dialog>
     );
@@ -76,7 +74,7 @@ export function AddBookmarkDrawerDialog() {
             Add a new bookmark to your current database.
           </DrawerDescription>
         </DrawerHeader>
-        <ProfileForm className="px-4" />
+        <InsertBookmarkForm />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button size={"lg"} variant="outline">
@@ -86,32 +84,5 @@ export function AddBookmarkDrawerDialog() {
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
-  );
-}
-
-function ProfileForm({ className }: React.ComponentProps<"form">) {
-  return (
-    <form className={cn("grid items-start gap-4", className)}>
-      <div className="grid gap-2">
-        <Label className="text-[1rem]" htmlFor="title">
-          Title
-        </Label>
-        <Input id="title" className="h-11" placeholder="Epic link title" />
-      </div>
-      <div className="grid gap-2">
-        <Label className="text-[1rem]" htmlFor="link">
-          Link
-        </Label>
-        <Input
-          type="url"
-          id="link"
-          className="h-11"
-          placeholder="www.exmaple.com"
-        />
-      </div>
-      <Button type="submit" size={"lg"} className="font-bold">
-        Create
-      </Button>
-    </form>
   );
 }
