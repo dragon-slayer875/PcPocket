@@ -1,5 +1,8 @@
+use std::fs;
 use std::path::Path;
+use tauri::AppHandle;
 use tauri::Manager;
+use tauri::WindowEvent;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
 
@@ -7,6 +10,35 @@ use tauri_plugin_store::StoreExt;
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+fn save_db(app_handle: &AppHandle) {
+    let local_db_path = app_handle
+        .path()
+        .app_config_dir()
+        .unwrap()
+        .join("bookmarks.tmp");
+
+    let stored_db_path = app_handle
+        .store("config.json")
+        .unwrap()
+        .get("dbPath")
+        .unwrap();
+    let user_db_path = stored_db_path.as_str().unwrap();
+
+    if user_db_path.is_empty() {
+        return;
+    }
+
+    let result = fs::copy(local_db_path, user_db_path);
+    match result {
+        Ok(_) => {
+            println!("Database saved successfully");
+        }
+        Err(e) => {
+            println!("Error saving database: {:?}", e);
+        }
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -58,6 +90,15 @@ pub fn run() {
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
+        .on_window_event(|_window, event| match event {
+            WindowEvent::CloseRequested { api, .. } => {
+                let app_handle = _window.app_handle();
+                api.prevent_close();
+                save_db(app_handle);
+                std::process::exit(0);
+            }
+            _ => {}
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
