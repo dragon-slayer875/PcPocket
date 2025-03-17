@@ -56,7 +56,7 @@ export function AddBookmarkDrawerDialog() {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader className="text-left">
-          <DrawerTitle>Create bookmark</DrawerTitle>
+          <DrawerTitle className="text-[1.2rem]">Create bookmark</DrawerTitle>
           <DrawerDescription>
             Add a new bookmark to your current database.
           </DrawerDescription>
@@ -64,7 +64,9 @@ export function AddBookmarkDrawerDialog() {
         <ProfileForm className="px-4" />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button size={"lg"} variant="outline">
+              Cancel
+            </Button>
           </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
@@ -76,14 +78,23 @@ function ProfileForm({ className }: React.ComponentProps<"form">) {
   return (
     <form className={cn("grid items-start gap-4", className)}>
       <div className="grid gap-2">
-        <Label htmlFor="title">Title</Label>
-        <Input type="text" id="title" placeholder="Epic link title" />
+        <Label className="text-[1rem]" htmlFor="title">
+          Title
+        </Label>
+        <Input id="title" className="h-11" placeholder="Epic link title" />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="link">Link</Label>
-        <Input id="link" placeholder="www.exmaple.com" />
+        <Label className="text-[1rem]" htmlFor="link">
+          Link
+        </Label>
+        <Input
+          type="url"
+          id="link"
+          className="h-11"
+          placeholder="www.exmaple.com"
+        />
       </div>
-      <Button type="submit" className="font-bold">
+      <Button type="submit" size={"lg"} className="font-bold">
         Create
       </Button>
     </form>
