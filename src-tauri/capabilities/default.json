@@ -12,6 +12,7 @@
     "store:default",
     "sql:default",
     "sql:allow-execute",
-    "fs:default"
+    "fs:default",
+    "notification:default"
   ]
 }
