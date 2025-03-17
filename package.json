@@ -37,7 +37,7 @@
     "tailwind-merge": "^3.0.2",
     "tailwindcss": "^4.0.14",
     "tailwindcss-animate": "^1.0.7",
-    "vaul": "^1.1.2",
+    "vaul": "file:../vaul",
     "zod": "^3.24.2"
   },
   "devDependencies": {
