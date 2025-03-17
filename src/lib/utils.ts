@@ -1,4 +1,9 @@
-import { BookmarkInsertItem, BookmarkItem, BookmarkSelectItem } from "@/types";
+import {
+  BookmarkInsertItem,
+  BookmarkInsertQueryItem,
+  BookmarkItem,
+  BookmarkSelectItem,
+} from "@/types";
 import Database from "@tauri-apps/plugin-sql";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { clsx, type ClassValue } from "clsx";
@@ -102,5 +107,35 @@ async function traverseFirefoxBookmarks(
         traverseFirefoxBookmarks(child, newTags, db),
       ),
     );
+  }
+}
+
+export async function insertBookmark(bookmark: BookmarkInsertQueryItem) {
+  const db = await Database.load("sqlite:bookmarks.tmp");
+  let bookmarkInsert = structuredClone(bookmark);
+  if (bookmarkInsert.tags) {
+    delete bookmarkInsert.tags;
+  }
+  const bookmarkId = await db
+    .execute(
+      `INSERT INTO bookmarks_table (${Object.keys(bookmarkInsert).join(", ")}) VALUES (${Object.keys(
+        bookmarkInsert,
+      )
+        .map((_, i) => `$${i + 1}`)
+        .join(", ")}) RETURNING id`,
+      Object.values(bookmarkInsert),
+    )
+    .then((result) => {
+      return result.lastInsertId;
+    });
+
+  if (bookmarkId && bookmark.tags) {
+    const tagInserts = bookmark.tags.map((tag) =>
+      db.execute(
+        `INSERT INTO tags_table (bookmark_id, tag_name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [bookmarkId, tag],
+      ),
+    );
+    await Promise.all(tagInserts);
   }
 }

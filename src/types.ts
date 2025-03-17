@@ -24,9 +24,17 @@ type BookmarkLink = BookmarkItemBase & {
 export type BookmarkInsertItem = {
   link: string;
   title: string;
-  id?: number | undefined;
-  icon_link?: string | null | undefined;
-  created_at?: Date | undefined;
+  id?: number;
+  icon_link?: string | null;
+  created_at?: Date;
+};
+
+export type BookmarkInsertQueryItem = {
+  title: string;
+  link: string;
+  icon_link?: string | null;
+  created_at?: Date;
+  tags?: string[];
 };
 
 export type BookmarkItem = BookmarkFolder | BookmarkLink;

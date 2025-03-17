@@ -1,19 +1,19 @@
-import {
-  // useInfiniteQuery,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { save, open } from "@tauri-apps/plugin-dialog";
-import { accessStore, getBookmarks, importBookmarks } from "./utils";
-import { BookmarkQueryItem } from "@/types";
+import {
+  accessStore,
+  getBookmarks,
+  importBookmarks,
+  insertBookmark,
+} from "./utils";
+import { BookmarkInsertQueryItem, BookmarkQueryItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/main";
 
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
-    queryFn: async function() {
+    queryFn: async function () {
       return accessStore("get", "dbPath");
     },
   });
@@ -23,7 +23,7 @@ export function useCreateDbMutation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       return save();
     },
     async onSuccess(dbPath) {
@@ -40,7 +40,7 @@ export function useCreateDbMutation() {
 export function useOpenDbMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       return open();
     },
     async onSuccess(dbPath) {
@@ -56,7 +56,7 @@ export function useGetBookmarksQuery(
 ) {
   return useQuery({
     queryKey: ["bookmarks", pageSize, cursor],
-    queryFn: async () => {
+    queryFn: async function () {
       const bookmarks: BookmarkQueryItem[] = await getBookmarks();
       return bookmarks;
     },
@@ -66,9 +66,21 @@ export function useGetBookmarksQuery(
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function() {
+    mutationFn: async function () {
       const path = await open();
       if (path) await importBookmarks(path);
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+    },
+  });
+}
+
+export function useInsertBookmarkMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async function (bookmark: BookmarkInsertQueryItem) {
+      await insertBookmark(bookmark);
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
