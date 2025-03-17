@@ -3,9 +3,25 @@ import Database from "@tauri-apps/plugin-sql";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { load } from "@tauri-apps/plugin-store";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+export async function accessStore(
+  mode: "get" | "set",
+  key: string,
+  value?: any,
+) {
+  const store = await load("config.json");
+
+  if (mode === "get") {
+    return store.get(key);
+  }
+  if (mode === "set") {
+    await store.set(key, value);
+  }
 }
 
 export async function getBookmarks() {
