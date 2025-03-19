@@ -22,7 +22,7 @@ export async function accessStore(
   const store = await load("config.json");
 
   if (mode === "get") {
-    return store.get(key);
+    return store.get<string>(key);
   }
   if (mode === "set") {
     await store.set(key, value);
