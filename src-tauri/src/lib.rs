@@ -3,14 +3,9 @@ use std::path::Path;
 use tauri::AppHandle;
 use tauri::Manager;
 use tauri::WindowEvent;
+use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
-
-// Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-#[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
-}
 
 fn save_db(app_handle: &AppHandle) {
     let local_db_path = app_handle
@@ -33,10 +28,22 @@ fn save_db(app_handle: &AppHandle) {
     let result = fs::copy(local_db_path, user_db_path);
     match result {
         Ok(_) => {
-            println!("Database saved successfully");
+            app_handle
+                .notification()
+                .builder()
+                .title("PcPocket")
+                .body("Database saved")
+                .show()
+                .unwrap();
         }
         Err(e) => {
-            println!("Error saving database: {:?}", e);
+            app_handle
+                .notification()
+                .builder()
+                .title("PcPocket")
+                .body(format!("Error saving database: {}", e))
+                .show()
+                .unwrap();
         }
     }
 }
@@ -75,6 +82,11 @@ pub fn run() {
         )
         .plugin(tauri_plugin_store::Builder::default().build())
         .setup(|app| {
+            use tauri_plugin_notification::NotificationExt;
+            let permission_state = app.notification().permission_state().unwrap();
+            if permission_state != tauri_plugin_notification::PermissionState::Granted {
+                let _ = app.notification().request_permission();
+            }
             let config_path = app.path().app_data_dir().unwrap().join("config.json");
 
             if Path::new(&config_path).try_exists().unwrap() {
@@ -90,7 +102,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![])
         .on_window_event(|_window, event| match event {
             WindowEvent::CloseRequested { api, .. } => {
                 let app_handle = _window.app_handle();
