@@ -13,6 +13,67 @@
     "sql:default",
     "sql:allow-execute",
     "fs:default",
+    {
+      "identifier": "fs:scope",
+      "allow": [
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-copy-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$HOME/**"
+        },
+        {
+          "path": "$HOME/Documents/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-create",
+      "allow": [
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$HOME/**"
+        },
+        {
+          "path": "$HOME/Documents/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-write-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
+    {
+      "identifier": "fs:allow-read-file",
+      "allow": [
+        {
+          "path": "$APPCONFIG/*"
+        },
+        {
+          "path": "$HOME/**"
+        }
+      ]
+    },
     "notification:default"
   ]
 }
