@@ -25,15 +25,6 @@ declare module "@tanstack/react-router" {
   }
 }
 
-accessStore("get", "dbPath").then((dbPath) => {
-  if (dbPath) {
-    router.navigate({
-      to: "/main",
-      replace: true,
-    });
-  }
-});
-
 const rootElement = document.getElementById("root")!;
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);

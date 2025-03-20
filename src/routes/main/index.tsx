@@ -1,7 +1,9 @@
+import { columns } from "@/components/ui/bookmarksTable/columns";
+import { DataTable } from "@/components/ui/bookmarksTable/dataTable";
 import { Button } from "@/components/ui/button";
-import { MainListItem } from "@/components/ui/mainListItem";
-import { MobileSearchBar } from "@/components/ui/mobileSearchBar";
-import { Separator } from "@/components/ui/separator";
+// import { MainListItem } from "@/components/ui/mainListItem";
+// import { MobileSearchBar } from "@/components/ui/mobileSearchBar";
+// import { Separator } from "@/components/ui/separator";
 import {
   useGetBookmarksQuery,
   useImportBookmarksMutation,
@@ -34,7 +36,7 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col gap-2 p-5 self-end sm:self-baseline">
           <Button
-            onClick={function () {
+            onClick={function() {
               importBookmarksMutation.mutate();
             }}
             size={"lg"}
@@ -59,14 +61,8 @@ function RouteComponent() {
   return (
     <>
       <div className="flex flex-1 flex-col gap-2">
-        {data.map((bookmark, idx) => (
-          <>
-            <MainListItem key={bookmark.id} bookmark={bookmark} />
-            {idx < data.length - 1 && <Separator key={idx} decorative />}
-          </>
-        ))}
+        <DataTable data={data} columns={columns} />
       </div>
-      <MobileSearchBar />
     </>
   );
 }

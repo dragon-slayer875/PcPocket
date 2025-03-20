@@ -27,7 +27,7 @@ export function AddBookmarkDrawerDialog() {
   const isDesktop = useMediaQuery("(min-width: 640px)");
 
   useEffect(() => {
-    window.androidBackCallback = function () {
+    window.androidBackCallback = function() {
       if (open) {
         setOpen(false);
         return false;
@@ -35,7 +35,7 @@ export function AddBookmarkDrawerDialog() {
       return true;
     };
     return () => {
-      window.androidBackCallback = function () {
+      window.androidBackCallback = function() {
         return true;
       };
     };
@@ -45,7 +45,7 @@ export function AddBookmarkDrawerDialog() {
     return (
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button variant="secondary">Edit Profile</Button>
+          <Button>Add bookmark</Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
