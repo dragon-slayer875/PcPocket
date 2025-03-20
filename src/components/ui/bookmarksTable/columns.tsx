@@ -24,7 +24,11 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     header: "Title",
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
-      return <div className="text-left whitespace-pre-line">{title}</div>;
+      return (
+        <div className="text-left whitespace-pre-line line-clamp-3">
+          {title}
+        </div>
+      );
     },
   },
   {
@@ -33,16 +37,16 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
       return (
-        <div className="flex items-center max-w-xl">
+        <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
           <Button variant={"ghost"}>
             <Clipboard />
           </Button>
           <Button
             variant="link"
-            onClick={async function() {
+            onClick={async function () {
               await openUrl(link);
             }}
-            className="block cursor-pointer max-w-[500px] overflow-ellipsis overflow-hidden whitespace-nowrap"
+            className="cursor-pointer text-left flex-1  justify-start whitespace-pre-wrap  break-all"
           >
             {link}
           </Button>
@@ -91,7 +95,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function() {
+              onClick={function () {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table
