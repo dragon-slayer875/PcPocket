@@ -39,7 +39,7 @@ export function AddBookmarkDrawerDialog() {
   }, []);
 
   useEffect(() => {
-    window.androidBackCallback = function() {
+    window.androidBackCallback = function () {
       if (open) {
         setOpen(false);
         return false;
@@ -47,7 +47,7 @@ export function AddBookmarkDrawerDialog() {
       return true;
     };
     return () => {
-      window.androidBackCallback = function() {
+      window.androidBackCallback = function () {
         return true;
       };
     };
@@ -66,7 +66,7 @@ export function AddBookmarkDrawerDialog() {
               Add a new bookmark to your current database.
             </DialogDescription>
           </DialogHeader>
-          <InsertBookmarkForm />
+          <InsertBookmarkForm setOpen={setOpen} />
         </DialogContent>
       </Dialog>
     );
@@ -86,7 +86,7 @@ export function AddBookmarkDrawerDialog() {
             Add a new bookmark to your current database.
           </DrawerDescription>
         </DrawerHeader>
-        <InsertBookmarkForm />
+        <InsertBookmarkForm setOpen={setOpen} />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button size={"lg"} variant="outline">

@@ -18,7 +18,11 @@ const formSchema = z.object({
   tags: z.array(z.string()),
 });
 
-export function InsertBookmarkForm() {
+export function InsertBookmarkForm({
+  setOpen,
+}: {
+  setOpen: (open: boolean) => void;
+}) {
   const insertBookmark = useInsertBookmarkMutation();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -31,6 +35,7 @@ export function InsertBookmarkForm() {
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     insertBookmark.mutate(values);
+    setOpen(false);
   }
 
   function transformTagValue(e: React.ChangeEvent<HTMLInputElement>) {
