@@ -1,6 +1,6 @@
 import { BookmarkQueryItem } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Clipboard } from "lucide-react";
+import { ArrowUpDown, Clipboard, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
@@ -17,7 +17,28 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   {
     accessorKey: "id",
     header: "Id",
-    enableHiding: true,
+  },
+  {
+    accessorKey: "icon_link",
+    header: "Icon",
+    cell: ({ row }) => {
+      const iconLink = row.getValue("icon_link") as string;
+      if (!iconLink) {
+        return <Globe className="h-7 w-7 mr-2.5" />;
+      }
+      return (
+        <img
+          src={iconLink}
+          alt="icon"
+          className="h-7 w-7"
+          onError={(e) => {
+            e.currentTarget.src =
+              "https://www.google.com/s2/favicons?domain=" +
+              row.getValue("link");
+          }}
+        />
+      );
+    },
   },
   {
     accessorKey: "title",
@@ -25,7 +46,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
-        <div className="text-left whitespace-pre-line line-clamp-3">
+        <div className="text-left flex items-center whitespace-pre-line line-clamp-3">
           {title}
         </div>
       );
