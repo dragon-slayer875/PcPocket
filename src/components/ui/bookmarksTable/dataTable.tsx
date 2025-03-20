@@ -2,6 +2,7 @@ import {
   ColumnDef,
   ColumnFiltersState,
   SortingState,
+  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -18,8 +19,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "../button";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -32,6 +40,11 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+    id: false,
+    created_at: false,
+  });
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const table = useReactTable({
     data,
@@ -41,44 +54,85 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
     state: {
       sorting,
       columnFilters,
+      columnVisibility,
     },
   });
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.key === "f") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div>
-      <Input
-        placeholder="Filter links..."
-        value={(() => {
-          const title =
-            (table.getColumn("title")?.getFilterValue() as string) ?? "";
-          const tags =
-            (table.getColumn("tags")?.getFilterValue() as string[]) ?? [];
-          return (
-            title +
-            [...tags.map((tag) => (tag ? `${tag}` : ""))]
-              .filter(Boolean)
-              .join("")
-          );
-        })()}
-        onChange={(event) => {
-          const inputValue = event.target.value;
+      <div className="flex mb-2">
+        <Input
+          placeholder="Filter links..."
+          value={(() => {
+            const title =
+              (table.getColumn("title")?.getFilterValue() as string) ?? "";
+            const tags =
+              (table.getColumn("tags")?.getFilterValue() as string[]) ?? [];
+            return (
+              title +
+              [...tags.map((tag) => (tag ? `${tag}` : ""))]
+                .filter(Boolean)
+                .join("")
+            );
+          })()}
+          onChange={(event) => {
+            const inputValue = event.target.value;
 
-          // Extract title (non-tag text at the beginning)
-          const title = inputValue.match(/^[^#][\w\s]*/);
+            // Extract title (non-tag text at the beginning)
+            const title = inputValue.match(/^[^#][\w\s]*/);
 
-          // Extract tags (words after # symbols)
-          const tags = inputValue.match(/#[\w\s]*/g) || [];
+            // Extract tags (words after # symbols)
+            const tags = inputValue.match(/#[\w\s]*/g) || [];
 
-          // Update filters
-          table.getColumn("title")?.setFilterValue(title);
-          table.getColumn("tags")?.setFilterValue(tags);
-        }}
-        className="max-w-md"
-      />
-      ;
+            // Update filters
+            table.getColumn("title")?.setFilterValue(title);
+            table.getColumn("tags")?.setFilterValue(tags);
+          }}
+          className="max-w-md"
+        />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="ml-auto">
+              Columns
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
