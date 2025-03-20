@@ -5,6 +5,7 @@ import { ArrowUpDown, Clipboard, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 export type Payment = {
   id: string;
@@ -59,12 +60,17 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       const link = row.getValue("link") as string;
       return (
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
-          <Button variant={"ghost"}>
+          <Button
+            variant={"ghost"}
+            onClick={async function() {
+              await writeText(link);
+            }}
+          >
             <Clipboard />
           </Button>
           <Button
             variant="link"
-            onClick={async function () {
+            onClick={async function() {
               await openUrl(link);
             }}
             className="cursor-pointer text-left flex-1  justify-start whitespace-pre-wrap  break-all"
@@ -116,7 +122,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function () {
+              onClick={function() {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table
