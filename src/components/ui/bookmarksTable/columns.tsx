@@ -6,6 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { useState } from "react";
 
 export type Payment = {
   id: string;
@@ -58,16 +65,30 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     header: "Link",
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
+      const [isCopied, setIsCopied] = useState(false);
       return (
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
-          <Button
-            variant={"ghost"}
-            onClick={async function() {
-              await writeText(link);
-            }}
-          >
-            <Clipboard />
-          </Button>
+          <TooltipProvider>
+            <Tooltip open={isCopied}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant={"ghost"}
+                  onClick={async function() {
+                    await writeText(link);
+                    setIsCopied(true);
+                    setTimeout(() => {
+                      setIsCopied(false);
+                    }, 750);
+                  }}
+                >
+                  <Clipboard />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Link copied to clipboard</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Button
             variant="link"
             onClick={async function() {
