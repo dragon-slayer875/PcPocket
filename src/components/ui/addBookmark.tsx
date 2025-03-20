@@ -27,6 +27,18 @@ export function AddBookmarkDrawerDialog() {
   const isDesktop = useMediaQuery("(min-width: 640px)");
 
   useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.altKey && event.key === "a") {
+        event.preventDefault();
+        setOpen(true);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     window.androidBackCallback = function() {
       if (open) {
         setOpen(false);
