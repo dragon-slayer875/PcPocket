@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useInsertBookmarkMutation } from "@/lib/queries";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   title: z.string(),
@@ -32,6 +33,10 @@ export function InsertBookmarkForm({
       tags: [],
     },
   });
+
+  useEffect(() => {
+    form.setFocus("link");
+  }, []);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     insertBookmark.mutate(values);
