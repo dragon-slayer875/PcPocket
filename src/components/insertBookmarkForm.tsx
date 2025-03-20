@@ -10,7 +10,7 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { TagInput } from "./tagsInput";
+import { useInsertBookmarkMutation } from "@/lib/queries";
 
 const formSchema = z.object({
   title: z.string(),
@@ -19,6 +19,7 @@ const formSchema = z.object({
 });
 
 export function InsertBookmarkForm() {
+  const insertBookmark = useInsertBookmarkMutation();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -29,7 +30,12 @@ export function InsertBookmarkForm() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+    insertBookmark.mutate(values);
+  }
+
+  function transformTagValue(e: React.ChangeEvent<HTMLInputElement>) {
+    let tags = e.target.value.split(",");
+    return tags ?? [];
   }
 
   return (
@@ -71,7 +77,12 @@ export function InsertBookmarkForm() {
               <FormItem>
                 <FormLabel className="text-[1rem]">Tags</FormLabel>
                 <FormControl>
-                  <TagInput placeholder="react, typescript" {...field} />
+                  <Input
+                    placeholder="react,typescript"
+                    {...field}
+                    value={field.value.join(",")}
+                    onChange={(e) => field.onChange(transformTagValue(e))}
+                  />
                 </FormControl>
               </FormItem>
             )}
