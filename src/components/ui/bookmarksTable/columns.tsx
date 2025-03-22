@@ -1,6 +1,6 @@
 import { BookmarkQueryItem } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Clipboard, Globe } from "lucide-react";
+import { ArrowUpDown, Clipboard, Edit, Globe } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
@@ -12,7 +12,27 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
 import { useState } from "react";
+import useMediaQuery from "@/lib/hooks";
+import { InsertBookmarkForm } from "@/components/insertBookmarkForm";
 
 export type Payment = {
   id: string;
@@ -65,30 +85,91 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     header: "Link",
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
-      const [isCopied, setIsCopied] = useState(false);
+      const [isCopied, setIsCopied] = useState("Copy to clipboard");
+      const [open, setOpen] = useState(false);
+      const [isTooltipOpen, setIsTooltipOpen] = useState(false);
+      const isDesktop = useMediaQuery("(min-width: 640px)");
       return (
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
           <TooltipProvider>
-            <Tooltip open={isCopied}>
+            <Tooltip open={isTooltipOpen}>
               <TooltipTrigger asChild>
                 <Button
                   variant={"ghost"}
+                  onMouseEnter={() => setIsTooltipOpen(true)}
+                  onMouseLeave={() => setIsTooltipOpen(false)}
                   onClick={async function() {
-                    await writeText(link);
-                    setIsCopied(true);
+                    writeText(link);
+                    setIsCopied("Copied!");
                     setTimeout(() => {
-                      setIsCopied(false);
+                      setIsCopied("Copy to clipboard");
                     }, 750);
                   }}
                 >
                   <Clipboard />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Link copied to clipboard</p>
-              </TooltipContent>
+              <TooltipContent>{isCopied}</TooltipContent>
             </Tooltip>
           </TooltipProvider>
+          {isDesktop ? (
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button variant={"ghost"}>
+                  <Edit />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Edit Bookmark</DialogTitle>
+                  <DialogDescription>
+                    Update stored bookmark information.
+                  </DialogDescription>
+                </DialogHeader>
+                <InsertBookmarkForm
+                  setOpen={setOpen}
+                  data={{
+                    title: row.getValue("title") as string,
+                    link: row.getValue("link") as string,
+                    tags: row.getValue("tags") as string[],
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Drawer open={open} onOpenChange={setOpen}>
+              <DrawerTrigger asChild>
+                <Button variant={"ghost"}>
+                  <Edit />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader className="text-left">
+                  <DrawerTitle className="text-[1.2rem]">
+                    Edit bookmark
+                  </DrawerTitle>
+                  <DrawerDescription>
+                    Update stored bookmark information.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <InsertBookmarkForm
+                  setOpen={setOpen}
+                  data={{
+                    title: row.getValue("title") as string,
+                    link: row.getValue("link") as string,
+                    tags: row.getValue("tags") as string[],
+                  }}
+                />
+                <DrawerFooter className="pt-2">
+                  <DrawerClose asChild>
+                    <Button size={"lg"} variant="outline">
+                      Cancel
+                    </Button>
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          )}
           <Button
             variant="link"
             onClick={async function() {
