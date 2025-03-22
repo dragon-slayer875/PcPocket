@@ -166,3 +166,8 @@ export async function updateBookmark(bookmark: BookmarkMutationItem) {
     await Promise.all(tagInserts);
   }
 }
+
+export async function deleteBookmark(bookmarkId: number) {
+  const db = await Database.load("sqlite:bookmarks.tmp");
+  await db.execute(`DELETE FROM bookmarks_table WHERE id = $1`, [bookmarkId]);
+}

@@ -31,7 +31,7 @@ export function DrawerDialog({
   setOpen: (open: boolean) => void;
   trigger: React.ReactNode;
   content: React.ReactNode;
-  description: string;
+  description?: string;
   title: string;
 }) {
   const isDesktop = useMediaQuery("(min-width: 640px)");

@@ -1,6 +1,6 @@
 import { BookmarkQueryItem } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Clipboard, Edit, Globe } from "lucide-react";
+import { ArrowUpDown, Clipboard, Edit, Globe, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/tooltip";
 import { useState } from "react";
 import { BookmarkForm } from "@/components/bookmarkForm";
-import { useUpdateBookmarkMutation } from "@/lib/queries";
+import {
+  useDeleteBookmarkMutation,
+  useUpdateBookmarkMutation,
+} from "@/lib/queries";
 import { DrawerDialog } from "../drawerDialog";
 
 export type Payment = {
@@ -64,21 +67,22 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     },
   },
   {
-    accessorKey: "link",
-    header: "Link",
+    id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
-      const link = row.getValue("link") as string;
       const [open, setOpen] = useState(false);
+      const [openDelete, setOpenDelete] = useState(false);
       const updateBookmark = useUpdateBookmarkMutation();
+      const deleteBookmark = useDeleteBookmarkMutation();
       return (
-        <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
+        <div className="flex gap-2">
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant={"ghost"}
-                  onClick={async function() {
-                    writeText(link);
+                  onClick={async function () {
+                    writeText(row.getValue("link") as string);
                   }}
                 >
                   <Clipboard />
@@ -110,9 +114,51 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
             description="Update stored bookmark information."
             title="Edit Bookmark"
           />
+          <DrawerDialog
+            open={openDelete}
+            setOpen={setOpenDelete}
+            trigger={
+              <Button
+                variant={"ghost"}
+                className="text-red-300 hover:text-red-400"
+              >
+                <Trash />
+              </Button>
+            }
+            content={
+              <div className="flex flex-col gap-4">
+                <div>Are you sure you want to delete this bookmark?</div>
+                <Button
+                  size={"lg"}
+                  variant={"destructive"}
+                  className="hover:bg-amber-300"
+                  onClick={async function () {
+                    await deleteBookmark.mutateAsync(
+                      row.getValue("id") as number,
+                    );
+                    setOpenDelete(false);
+                  }}
+                >
+                  Yes
+                </Button>
+              </div>
+            }
+            title="Delete Bookmark"
+          />
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "link",
+    header: "Link",
+    cell: ({ row }) => {
+      const link = row.getValue("link") as string;
+      return (
+        <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
           <Button
             variant="link"
-            onClick={async function() {
+            onClick={async function () {
               await openUrl(link);
             }}
             className="cursor-pointer text-left flex-1  justify-start whitespace-pre-wrap  break-all"
@@ -164,7 +210,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function() {
+              onClick={function () {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table
