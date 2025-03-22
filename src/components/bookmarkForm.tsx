@@ -63,7 +63,7 @@ export function BookmarkForm({
               <FormItem>
                 <FormLabel className="text-[1rem]">Title</FormLabel>
                 <FormControl>
-                  <Input placeholder="Epic link title" {...field} />
+                  <Input required placeholder="Epic link title" {...field} />
                 </FormControl>
               </FormItem>
             )}
@@ -77,6 +77,7 @@ export function BookmarkForm({
                 <FormControl>
                   <Input
                     type="url"
+                    required
                     placeholder="https://example.com"
                     {...field}
                   />
