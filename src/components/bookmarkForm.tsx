@@ -10,8 +10,8 @@ import {
   FormLabel,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { useInsertBookmarkMutation } from "@/lib/queries";
 import { useEffect } from "react";
+import { BookmarkMutationItem } from "@/types";
 
 const formSchema = z.object({
   title: z.string(),
@@ -19,19 +19,18 @@ const formSchema = z.object({
   tags: z.array(z.string()),
 });
 
-export function InsertBookmarkForm({
+export function BookmarkForm({
   setOpen,
+  data = { title: "", link: "", tags: [] },
+  handleSubmit,
 }: {
   setOpen: (open: boolean) => void;
+  data?: BookmarkMutationItem;
+  handleSubmit: (values: typeof data) => void;
 }) {
-  const insertBookmark = useInsertBookmarkMutation();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: "",
-      link: "",
-      tags: [],
-    },
+    defaultValues: data,
   });
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export function InsertBookmarkForm({
   }, []);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    insertBookmark.mutate(values);
+    handleSubmit(values);
     setOpen(false);
   }
 

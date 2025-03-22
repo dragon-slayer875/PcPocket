@@ -29,10 +29,11 @@ export type BookmarkInsertItem = {
   created_at?: Date;
 };
 
-export type BookmarkInsertQueryItem = {
+export type BookmarkMutationItem = {
+  id?: number;
   title: string;
   link: string;
-  icon_link?: string | null;
+  icon_link?: string;
   created_at?: Date;
   tags?: string[];
 };
@@ -43,7 +44,7 @@ export type BookmarkQueryItem = {
   id: number;
   title: string;
   link: string;
-  icon_link?: string;
+  icon_link: string | null;
   created_at: Date;
   tags: string[];
 };

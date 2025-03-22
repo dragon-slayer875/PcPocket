@@ -20,11 +20,13 @@ import {
 } from "@/components/ui/drawer";
 import { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
-import { InsertBookmarkForm } from "../insertBookmarkForm";
+import { BookmarkForm } from "../bookmarkForm";
+import { useInsertBookmarkMutation } from "@/lib/queries";
 
 export function AddBookmarkDrawerDialog() {
   const [open, setOpen] = useState(false);
   const isDesktop = useMediaQuery("(min-width: 640px)");
+  const insertBookmark = useInsertBookmarkMutation();
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -39,7 +41,7 @@ export function AddBookmarkDrawerDialog() {
   }, []);
 
   useEffect(() => {
-    window.androidBackCallback = function () {
+    window.androidBackCallback = function() {
       if (open) {
         setOpen(false);
         return false;
@@ -47,7 +49,7 @@ export function AddBookmarkDrawerDialog() {
       return true;
     };
     return () => {
-      window.androidBackCallback = function () {
+      window.androidBackCallback = function() {
         return true;
       };
     };
@@ -66,7 +68,10 @@ export function AddBookmarkDrawerDialog() {
               Add a new bookmark to your current database.
             </DialogDescription>
           </DialogHeader>
-          <InsertBookmarkForm setOpen={setOpen} />
+          <BookmarkForm
+            handleSubmit={insertBookmark.mutate}
+            setOpen={setOpen}
+          />
         </DialogContent>
       </Dialog>
     );
@@ -86,7 +91,7 @@ export function AddBookmarkDrawerDialog() {
             Add a new bookmark to your current database.
           </DrawerDescription>
         </DrawerHeader>
-        <InsertBookmarkForm setOpen={setOpen} />
+        <BookmarkForm handleSubmit={insertBookmark.mutate} setOpen={setOpen} />
         <DrawerFooter className="pt-2">
           <DrawerClose asChild>
             <Button size={"lg"} variant="outline">

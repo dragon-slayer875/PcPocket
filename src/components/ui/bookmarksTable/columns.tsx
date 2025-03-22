@@ -32,7 +32,8 @@ import {
 } from "@/components/ui/drawer";
 import { useState } from "react";
 import useMediaQuery from "@/lib/hooks";
-import { InsertBookmarkForm } from "@/components/insertBookmarkForm";
+import { BookmarkForm } from "@/components/bookmarkForm";
+import { useUpdateBookmarkMutation } from "@/lib/queries";
 
 export type Payment = {
   id: string;
@@ -85,31 +86,24 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     header: "Link",
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
-      const [isCopied, setIsCopied] = useState("Copy to clipboard");
       const [open, setOpen] = useState(false);
-      const [isTooltipOpen, setIsTooltipOpen] = useState(false);
       const isDesktop = useMediaQuery("(min-width: 640px)");
+      const updateBookmark = useUpdateBookmarkMutation();
       return (
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
           <TooltipProvider>
-            <Tooltip open={isTooltipOpen}>
+            <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant={"ghost"}
-                  onMouseEnter={() => setIsTooltipOpen(true)}
-                  onMouseLeave={() => setIsTooltipOpen(false)}
                   onClick={async function() {
                     writeText(link);
-                    setIsCopied("Copied!");
-                    setTimeout(() => {
-                      setIsCopied("Copy to clipboard");
-                    }, 750);
                   }}
                 >
                   <Clipboard />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>{isCopied}</TooltipContent>
+              <TooltipContent>Copy content to clipboard</TooltipContent>
             </Tooltip>
           </TooltipProvider>
           {isDesktop ? (
@@ -126,9 +120,11 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                     Update stored bookmark information.
                   </DialogDescription>
                 </DialogHeader>
-                <InsertBookmarkForm
+                <BookmarkForm
+                  handleSubmit={updateBookmark.mutate}
                   setOpen={setOpen}
                   data={{
+                    id: row.getValue("id") as number,
                     title: row.getValue("title") as string,
                     link: row.getValue("link") as string,
                     tags: row.getValue("tags") as string[],
@@ -152,9 +148,11 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                     Update stored bookmark information.
                   </DrawerDescription>
                 </DrawerHeader>
-                <InsertBookmarkForm
+                <BookmarkForm
+                  handleSubmit={updateBookmark.mutate}
                   setOpen={setOpen}
                   data={{
+                    id: row.getValue("id") as number,
                     title: row.getValue("title") as string,
                     link: row.getValue("link") as string,
                     tags: row.getValue("tags") as string[],

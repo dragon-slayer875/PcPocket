@@ -1,6 +1,6 @@
 import {
   BookmarkInsertItem,
-  BookmarkInsertQueryItem,
+  BookmarkMutationItem,
   BookmarkItem,
   BookmarkSelectItem,
 } from "@/types";
@@ -110,7 +110,7 @@ async function traverseFirefoxBookmarks(
   }
 }
 
-export async function insertBookmark(bookmark: BookmarkInsertQueryItem) {
+export async function insertBookmark(bookmark: BookmarkMutationItem) {
   const db = await Database.load("sqlite:bookmarks.tmp");
   let bookmarkInsert = structuredClone(bookmark);
   if (bookmarkInsert.tags) {
@@ -134,6 +134,33 @@ export async function insertBookmark(bookmark: BookmarkInsertQueryItem) {
       db.execute(
         `INSERT INTO tags_table (bookmark_id, tag_name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
         [bookmarkId, tag],
+      ),
+    );
+    await Promise.all(tagInserts);
+  }
+}
+
+export async function updateBookmark(bookmark: BookmarkMutationItem) {
+  const db = await Database.load("sqlite:bookmarks.tmp");
+  let bookmarkUpdate = structuredClone(bookmark);
+  if (bookmarkUpdate.tags) {
+    delete bookmarkUpdate.tags;
+  }
+  await db.execute(
+    `UPDATE bookmarks_table SET ${Object.keys(bookmarkUpdate)
+      .map((key, i) => `${key} = $${i + 1}`)
+      .join(", ")} WHERE id = $${Object.keys(bookmarkUpdate).length + 1}`,
+    [...Object.values(bookmarkUpdate), bookmark.id],
+  );
+
+  if (bookmark.tags) {
+    await db.execute(`DELETE FROM tags_table WHERE bookmark_id = $1`, [
+      bookmark.id,
+    ]);
+    const tagInserts = bookmark.tags.map((tag) =>
+      db.execute(
+        `INSERT INTO tags_table (bookmark_id, tag_name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [bookmark.id, tag],
       ),
     );
     await Promise.all(tagInserts);

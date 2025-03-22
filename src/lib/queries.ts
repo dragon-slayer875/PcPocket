@@ -5,8 +5,9 @@ import {
   getBookmarks,
   importBookmarks,
   insertBookmark,
+  updateBookmark,
 } from "./utils";
-import { BookmarkInsertQueryItem, BookmarkQueryItem } from "@/types";
+import { BookmarkMutationItem, BookmarkQueryItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/main";
 // import {
@@ -138,8 +139,20 @@ export function useImportBookmarksMutation() {
 export function useInsertBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function(bookmark: BookmarkInsertQueryItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       await insertBookmark(bookmark);
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+    },
+  });
+}
+
+export function useUpdateBookmarkMutation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
+      await updateBookmark(bookmark);
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
