@@ -60,7 +60,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
-        <div className="text-left flex items-center whitespace-pre-line line-clamp-3">
+        <div className="text-left select-text flex items-center whitespace-pre-line line-clamp-3">
           {title}
         </div>
       );
@@ -160,7 +160,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
             onClick={async function () {
               await openUrl(link);
             }}
-            className="cursor-pointer text-left flex-1  justify-start whitespace-pre-wrap  break-all"
+            className="cursor-pointer select-text text-left flex-1  justify-start whitespace-pre-wrap  break-all"
           >
             {link}
           </Button>
