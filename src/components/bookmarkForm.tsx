@@ -38,7 +38,12 @@ export function BookmarkForm({
   }, []);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    handleSubmit(values);
+    let submitData: BookmarkMutationItem = values;
+    if (data.id) {
+      submitData.id = data.id;
+    }
+
+    handleSubmit(submitData);
     setOpen(false);
   }
 
