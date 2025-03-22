@@ -131,7 +131,6 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                 <Button
                   size={"lg"}
                   variant={"destructive"}
-                  className="hover:bg-amber-300"
                   onClick={async function () {
                     await deleteBookmark.mutateAsync(
                       row.getValue("id") as number,
