@@ -12,28 +12,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer";
 import { useState } from "react";
-import useMediaQuery from "@/lib/hooks";
 import { BookmarkForm } from "@/components/bookmarkForm";
 import { useUpdateBookmarkMutation } from "@/lib/queries";
+import { DrawerDialog } from "../drawerDialog";
 
 export type Payment = {
   id: string;
@@ -87,7 +69,6 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
       const [open, setOpen] = useState(false);
-      const isDesktop = useMediaQuery("(min-width: 640px)");
       const updateBookmark = useUpdateBookmarkMutation();
       return (
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
@@ -106,68 +87,29 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
               <TooltipContent>Copy content to clipboard</TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          {isDesktop ? (
-            <Dialog open={open} onOpenChange={setOpen}>
-              <DialogTrigger asChild>
-                <Button variant={"ghost"}>
-                  <Edit />
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                  <DialogTitle>Edit Bookmark</DialogTitle>
-                  <DialogDescription>
-                    Update stored bookmark information.
-                  </DialogDescription>
-                </DialogHeader>
-                <BookmarkForm
-                  handleSubmit={updateBookmark.mutate}
-                  setOpen={setOpen}
-                  data={{
-                    id: row.getValue("id") as number,
-                    title: row.getValue("title") as string,
-                    link: row.getValue("link") as string,
-                    tags: row.getValue("tags") as string[],
-                  }}
-                />
-              </DialogContent>
-            </Dialog>
-          ) : (
-            <Drawer open={open} onOpenChange={setOpen}>
-              <DrawerTrigger asChild>
-                <Button variant={"ghost"}>
-                  <Edit />
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader className="text-left">
-                  <DrawerTitle className="text-[1.2rem]">
-                    Edit bookmark
-                  </DrawerTitle>
-                  <DrawerDescription>
-                    Update stored bookmark information.
-                  </DrawerDescription>
-                </DrawerHeader>
-                <BookmarkForm
-                  handleSubmit={updateBookmark.mutate}
-                  setOpen={setOpen}
-                  data={{
-                    id: row.getValue("id") as number,
-                    title: row.getValue("title") as string,
-                    link: row.getValue("link") as string,
-                    tags: row.getValue("tags") as string[],
-                  }}
-                />
-                <DrawerFooter className="pt-2">
-                  <DrawerClose asChild>
-                    <Button size={"lg"} variant="outline">
-                      Cancel
-                    </Button>
-                  </DrawerClose>
-                </DrawerFooter>
-              </DrawerContent>
-            </Drawer>
-          )}
+          <DrawerDialog
+            open={open}
+            setOpen={setOpen}
+            trigger={
+              <Button variant={"ghost"}>
+                <Edit />
+              </Button>
+            }
+            content={
+              <BookmarkForm
+                handleSubmit={updateBookmark.mutate}
+                setOpen={setOpen}
+                data={{
+                  id: row.getValue("id") as number,
+                  title: row.getValue("title") as string,
+                  link: row.getValue("link") as string,
+                  tags: row.getValue("tags") as string[],
+                }}
+              />
+            }
+            description="Update stored bookmark information."
+            title="Edit Bookmark"
+          />
           <Button
             variant="link"
             onClick={async function() {
