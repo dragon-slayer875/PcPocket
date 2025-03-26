@@ -3,6 +3,7 @@ import {
   ColumnFiltersState,
   SortingState,
   VisibilityState,
+  RowSelectionState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
@@ -45,6 +46,7 @@ export function DataTable<TData, TValue>({
     id: false,
     created_at: false,
   });
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
 
   const table = useReactTable({
@@ -56,10 +58,12 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
+      rowSelection,
     },
   });
 
@@ -75,11 +79,28 @@ export function DataTable<TData, TValue>({
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  useEffect(() => {
+    // Assuming you have a filtering mechanism in place
+    const filteredRows = table.getFilteredRowModel().rows;
+
+    if (filteredRows.length > 0 && filteredRows.length < data.length) {
+      const firstRowId = filteredRows[0].id;
+      setRowSelection((prev) => ({
+        ...prev,
+        [firstRowId]: true,
+      }));
+    }
+
+    return function () {
+      if (table.getSelectedRowModel().rows.length === 1) setRowSelection({});
+    };
+  }, [data, table.getFilteredRowModel()]);
+
   return (
     <div>
       <div className="flex justify-between mb-2">
         <Input
-          placeholder="Filter links..."
+          placeholder="Filter links: title#tag1#tag2"
           ref={searchRef}
           value={(() => {
             const title =
