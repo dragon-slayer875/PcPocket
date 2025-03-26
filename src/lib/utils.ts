@@ -171,3 +171,30 @@ export async function deleteBookmark(bookmarkId: number) {
   const db = await Database.load("sqlite:bookmarks.tmp");
   await db.execute(`DELETE FROM bookmarks_table WHERE id = $1`, [bookmarkId]);
 }
+
+export async function updateTags(
+  bookmarkIds: number[],
+  tagsToAdd: string[],
+  tagsToDelete: string[],
+) {
+  const db = await Database.load("sqlite:bookmarks.tmp");
+  const tagInserts = bookmarkIds.map((id) =>
+    tagsToAdd.map((tag) =>
+      db.execute(
+        `INSERT INTO tags_table (bookmark_id, tag_name) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+        [id, tag],
+      ),
+    ),
+  );
+  await Promise.all(tagInserts.flat());
+
+  const tagDeletes = bookmarkIds.map((id) =>
+    tagsToDelete.map((tag) =>
+      db.execute(
+        `DELETE FROM tags_table WHERE bookmark_id = $1 AND tag_name = $2`,
+        [id, tag],
+      ),
+    ),
+  );
+  await Promise.all(tagDeletes.flat());
+}

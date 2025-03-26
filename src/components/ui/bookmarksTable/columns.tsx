@@ -12,13 +12,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BookmarkForm } from "@/components/bookmarkForm";
 import {
   useDeleteBookmarkMutation,
   useUpdateBookmarkMutation,
+  useUpdateTagsMutation,
 } from "@/lib/queries";
 import { DrawerDialog } from "../drawerDialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "../separator";
+import { Input } from "../input";
 
 export type Payment = {
   id: string;
@@ -28,6 +32,30 @@ export type Payment = {
 };
 
 export const columns: ColumnDef<BookmarkQueryItem>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="mx-2"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="mx-2"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: "id",
     header: "Id",
@@ -81,7 +109,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
               <TooltipTrigger asChild>
                 <Button
                   variant={"ghost"}
-                  onClick={async function () {
+                  onClick={async function() {
                     writeText(row.getValue("link") as string);
                   }}
                 >
@@ -131,7 +159,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                 <Button
                   size={"lg"}
                   variant={"destructive"}
-                  onClick={async function () {
+                  onClick={async function() {
                     await deleteBookmark.mutateAsync(
                       row.getValue("id") as number,
                     );
@@ -157,7 +185,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
           <Button
             variant="link"
-            onClick={async function () {
+            onClick={async function() {
               await openUrl(link);
             }}
             className="cursor-pointer select-text text-left flex-1  justify-start whitespace-pre-wrap  break-all"
@@ -189,7 +217,130 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   },
   {
     accessorKey: "tags",
-    header: "Tags",
+    header: ({ table }) => {
+      const [open, setOpen] = useState(false);
+      const updateTags = useUpdateTagsMutation();
+      const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
+      const [tagsToDelete, setTagsToDelete] = useState<Set<string>>(new Set());
+      const [tagsToAdd, setTagsToAdd] = useState<Set<string>>(new Set());
+      const [tagsInputValue, setTagsInputValue] = useState("");
+
+      useEffect(() => {
+        const initialSelectedTags = new Set<string>();
+        const tableData = table.getSelectedRowModel();
+        tableData.rows.forEach((row) => {
+          const tags = row.getValue("tags") as string[];
+          tags.forEach((tag) => {
+            initialSelectedTags.add(tag);
+          });
+        });
+        setSelectedTags(initialSelectedTags);
+
+        return function() {
+          setSelectedTags(initialSelectedTags);
+          setTagsToDelete(new Set());
+          setTagsToAdd(new Set());
+          setTagsInputValue("");
+        };
+      }, [table.getSelectedRowModel()]);
+
+      function handleDeleteTag(tag: string) {
+        if (selectedTags.has(tag)) {
+          setSelectedTags((prev) => {
+            prev.delete(tag);
+            return new Set(prev);
+          });
+          setTagsToDelete((prev) => prev.add(tag));
+        } else {
+          setSelectedTags((prev) => prev.add(tag));
+          setTagsToDelete((prev) => {
+            prev.delete(tag);
+            return new Set(prev);
+          });
+        }
+      }
+
+      return (
+        <div className="flex gap-2 items-center">
+          <span>Tags</span>
+          {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && (
+            <DrawerDialog
+              open={open}
+              setOpen={setOpen}
+              trigger={
+                <Button variant={"ghost"}>
+                  <Edit />
+                </Button>
+              }
+              content={
+                <>
+                  <div className="flex gap-2 flex-wrap">
+                    {Array.from(selectedTags).map((tag) => (
+                      <Button
+                        size={"sm"}
+                        key={tag}
+                        className="cursor-pointer rounded-lg"
+                        onClick={function() {
+                          handleDeleteTag(tag);
+                        }}
+                      >
+                        <span>{tag}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  {tagsToDelete.size > 0 && <Separator />}
+                  <div className="flex gap-2 flex-wrap">
+                    {Array.from(tagsToDelete).map((tag) => (
+                      <Button
+                        size={"sm"}
+                        key={tag}
+                        className="cursor-pointer rounded-lg"
+                        variant={"destructive"}
+                        onClick={function() {
+                          handleDeleteTag(tag);
+                        }}
+                      >
+                        <span>{tag}</span>
+                      </Button>
+                    ))}
+                  </div>
+                  <Input
+                    type="text"
+                    value={tagsInputValue}
+                    onChange={function(e) {
+                      setTagsInputValue(e.target.value);
+                      setTagsToAdd(new Set(e.target.value.split(",")));
+                    }}
+                    autoFocus
+                    placeholder="Enter tags to add: tag1,tag2"
+                  />
+                  <Button
+                    size={"lg"}
+                    hidden={tagsToDelete.size === 0 && tagsToAdd.size === 0}
+                    onClick={async function() {
+                      const tableData = table.getSelectedRowModel();
+                      const ids: number[] = tableData.rows.map((row) =>
+                        row.getValue("id"),
+                      );
+                      await updateTags.mutateAsync({
+                        ids: ids,
+                        tagsToAdd: Array.from(tagsToAdd).filter((tag) => tag),
+                        tagsToDelete: Array.from(tagsToDelete),
+                      });
+                      setOpen(false);
+                    }}
+                  >
+                    Update
+                  </Button>
+                </>
+              }
+              description="Edit tags of multiple entries."
+              title="Tags"
+            />
+          )}
+        </div>
+      );
+    },
     filterFn: (row, _, filterValue: string[]) => {
       const tags = row.getValue("tags") as string[];
       const cleanedFilterValue = filterValue.map((value) =>
@@ -209,7 +360,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function () {
+              onClick={function() {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table
