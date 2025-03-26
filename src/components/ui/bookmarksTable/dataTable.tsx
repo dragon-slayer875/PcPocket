@@ -68,15 +68,15 @@ export function DataTable<TData, TValue>({
   });
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleFindShortcut = (event: KeyboardEvent) => {
       if (event.ctrlKey && event.key === "f") {
         event.preventDefault();
         searchRef.current?.focus();
       }
     };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
+    document.addEventListener("keydown", handleFindShortcut);
+    return () => document.removeEventListener("keydown", handleFindShortcut);
   }, []);
 
   useEffect(() => {
