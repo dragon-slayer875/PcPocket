@@ -30,6 +30,8 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { toast } from "sonner";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -68,15 +70,32 @@ export function DataTable<TData, TValue>({
   });
 
   useEffect(() => {
-    const handleFindShortcut = (event: KeyboardEvent) => {
+    function handleFindShortcut(event: KeyboardEvent) {
       if (event.ctrlKey && event.key === "f") {
         event.preventDefault();
         searchRef.current?.focus();
       }
-    };
+    }
+
+    function handleCopyShortcut(event: KeyboardEvent) {
+      if (event.ctrlKey && event.key === "c") {
+        event.preventDefault();
+        const selectedRows = table.getSelectedRowModel().rows;
+        if (selectedRows.length === 1) {
+          const selectedRow = selectedRows[0];
+          writeText(selectedRow.getValue("link") as string);
+          toast("Link copied to clipboard.");
+        }
+      }
+    }
 
     document.addEventListener("keydown", handleFindShortcut);
-    return () => document.removeEventListener("keydown", handleFindShortcut);
+    document.addEventListener("keydown", handleCopyShortcut);
+
+    return function () {
+      document.removeEventListener("keydown", handleFindShortcut);
+      document.removeEventListener("keydown", handleCopyShortcut);
+    };
   }, []);
 
   useEffect(() => {
