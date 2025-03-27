@@ -71,14 +71,30 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     function handleFindShortcut(event: KeyboardEvent) {
-      if (event.ctrlKey && event.key === "f") {
+      const activeElement = document.activeElement as HTMLElement | null;
+      if ((event.ctrlKey && event.key === "f") || event.key === "/") {
+        if (
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          activeElement?.isContentEditable
+        ) {
+          return;
+        }
         event.preventDefault();
         searchRef.current?.focus();
       }
     }
 
     function handleCopyShortcut(event: KeyboardEvent) {
+      const activeElement = document.activeElement as HTMLElement | null;
       if (event.ctrlKey && event.key === "c") {
+        if (
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          (activeElement && activeElement.isContentEditable)
+        ) {
+          return;
+        }
         event.preventDefault();
         const selectedRows = table.getSelectedRowModel().rows;
         if (selectedRows.length === 1) {
