@@ -109,7 +109,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
               <TooltipTrigger asChild>
                 <Button
                   variant={"ghost"}
-                  onClick={async function() {
+                  onClick={async function () {
                     writeText(row.getValue("link") as string);
                   }}
                 >
@@ -159,7 +159,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                 <Button
                   size={"lg"}
                   variant={"destructive"}
-                  onClick={async function() {
+                  onClick={async function () {
                     await deleteBookmark.mutateAsync(
                       row.getValue("id") as number,
                     );
@@ -182,17 +182,15 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
       return (
-        <div className="flex overflow-hidden line-clamp-3 text-left justify-start">
-          <Button
-            variant="link"
-            onClick={async function() {
-              await openUrl(link);
-            }}
-            className="cursor-pointer select-text text-left flex-1  justify-start whitespace-pre-wrap  break-all"
-          >
-            {link}
-          </Button>
-        </div>
+        <Button
+          variant={"link"}
+          className="inline-block overflow-hidden h-max max-w-[70px] lg:max-w-full overflow-ellipsis lg:break-all lg:whitespace-pre-wrap text-left justify-start select-text cursor-pointer"
+          onClick={function () {
+            openUrl(link);
+          }}
+        >
+          {link}
+        </Button>
       );
     },
   },
@@ -236,7 +234,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         });
         setSelectedTags(initialSelectedTags);
 
-        return function() {
+        return function () {
           setSelectedTags(initialSelectedTags);
           setTagsToDelete(new Set());
           setTagsToAdd(new Set());
@@ -280,7 +278,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                         size={"sm"}
                         key={tag}
                         className="cursor-pointer rounded-lg"
-                        onClick={function() {
+                        onClick={function () {
                           handleDeleteTag(tag);
                         }}
                       >
@@ -296,7 +294,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                         key={tag}
                         className="cursor-pointer rounded-lg"
                         variant={"destructive"}
-                        onClick={function() {
+                        onClick={function () {
                           handleDeleteTag(tag);
                         }}
                       >
@@ -307,7 +305,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   <Input
                     type="text"
                     value={tagsInputValue}
-                    onChange={function(e) {
+                    onChange={function (e) {
                       setTagsInputValue(e.target.value);
                       setTagsToAdd(new Set(e.target.value.split(",")));
                     }}
@@ -317,7 +315,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   <Button
                     size={"lg"}
                     hidden={tagsToDelete.size === 0 && tagsToAdd.size === 0}
-                    onClick={async function() {
+                    onClick={async function () {
                       const tableData = table.getSelectedRowModel();
                       const ids: number[] = tableData.rows.map((row) =>
                         row.getValue("id"),
@@ -360,7 +358,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function() {
+              onClick={function () {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table
