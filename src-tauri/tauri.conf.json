@@ -21,6 +21,14 @@
       "csp": null
     }
   },
+
+  "plugins": {
+    "deep-link": {
+      "desktop": {
+        "schemes": ["pcpocket"]
+      }
+    }
+  },
   "bundle": {
     "active": true,
     "targets": "all",

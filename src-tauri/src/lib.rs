@@ -1,52 +1,11 @@
-use std::fs;
 use std::path::Path;
-use tauri::AppHandle;
 use tauri::Manager;
 use tauri::WindowEvent;
-use tauri_plugin_notification::NotificationExt;
+use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
 
-fn save_db(app_handle: &AppHandle) {
-    let local_db_path = app_handle
-        .path()
-        .app_config_dir()
-        .unwrap()
-        .join("bookmarks.tmp");
-
-    let stored_db_path = app_handle
-        .store("config.json")
-        .unwrap()
-        .get("dbPath")
-        .unwrap();
-    let user_db_path = stored_db_path.as_str().unwrap();
-
-    if user_db_path.is_empty() {
-        return;
-    }
-
-    let result = fs::copy(local_db_path, user_db_path);
-    match result {
-        Ok(_) => {
-            app_handle
-                .notification()
-                .builder()
-                .title("PcPocket")
-                .body("Database saved")
-                .show()
-                .unwrap();
-        }
-        Err(e) => {
-            app_handle
-                .notification()
-                .builder()
-                .title("PcPocket")
-                .body(format!("Error saving database: {}", e))
-                .show()
-                .unwrap();
-        }
-    }
-}
+mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -76,6 +35,7 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder
+            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {}))
             .setup(|app| {
                 use tauri_plugin_autostart::MacosLauncher;
                 use tauri_plugin_autostart::ManagerExt;
@@ -99,12 +59,6 @@ pub fn run() {
 
                 Ok(())
             })
-            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-                let _ = app
-                    .get_webview_window("main")
-                    .expect("no main window")
-                    .set_focus();
-            }));
     }
     builder
         .plugin(tauri_plugin_clipboard_manager::init())
@@ -117,12 +71,14 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_store::Builder::default().build())
+        .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
             use tauri_plugin_notification::NotificationExt;
             let permission_state = app.notification().permission_state().unwrap();
             if permission_state != tauri_plugin_notification::PermissionState::Granted {
                 let _ = app.notification().request_permission();
             }
+
             let config_path = app.path().app_data_dir().unwrap().join("config.json");
 
             if Path::new(&config_path).try_exists().unwrap() {
@@ -133,6 +89,10 @@ pub fn run() {
                 let store = app.store("config.json")?;
                 store.set("dbPath", "");
             }
+
+            #[cfg(any(windows, target_os = "linux"))]
+            app.deep_link().register_all()?;
+
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
@@ -143,7 +103,7 @@ pub fn run() {
             WindowEvent::CloseRequested { api, .. } => {
                 let app_handle = _window.app_handle();
                 api.prevent_close();
-                save_db(app_handle);
+                commands::save_db(app_handle);
                 std::process::exit(0);
             }
             _ => {}
