@@ -71,7 +71,7 @@ pub fn run() {
             kind: MigrationKind::Up,
         },
     ];
-    let mut builder = tauri::Builder::default();
+    let mut builder = tauri::Builder::default().plugin(tauri_plugin_autostart::init());
     #[cfg(desktop)]
     {
         builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
