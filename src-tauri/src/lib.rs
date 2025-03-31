@@ -1,11 +1,9 @@
-use std::path::Path;
-use tauri::Manager;
-use tauri_plugin_deep_link::DeepLinkExt;
+use tauri::async_runtime::spawn;
 use tauri_plugin_sql::{Migration, MigrationKind};
-use tauri_plugin_store::StoreExt;
 
 mod commands;
 mod runtime;
+mod setup;
 mod tray;
 
 #[cfg(target_os = "macos")]
@@ -79,28 +77,7 @@ pub fn run() {
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
-            use tauri_plugin_notification::NotificationExt;
-            let permission_state = app.notification().permission_state().unwrap();
-            if permission_state != tauri_plugin_notification::PermissionState::Granted {
-                let _ = app.notification().request_permission();
-            }
-
-            let config_path = app.path().app_data_dir().unwrap().join("config.json");
-
-            if Path::new(&config_path).try_exists().unwrap() {
-                app.get_webview_window("main")
-                    .unwrap()
-                    .eval("window.location.replace('main')")?;
-            } else {
-                let store = app.store("config.json")?;
-                store.set("dbPath", "");
-            }
-
-            tray::create_tray(&app.handle())?;
-
-            #[cfg(any(windows, target_os = "linux"))]
-            app.deep_link().register_all()?;
-
+            spawn(setup::setup_tasks(app.handle().clone()));
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
