@@ -1,9 +1,12 @@
 use std::fs;
+use std::path::PathBuf;
+use std::str::FromStr;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_store::StoreExt;
 
-pub fn save_db(app_handle: &AppHandle) {
+#[tauri::command]
+pub fn save_db(app_handle: AppHandle) {
     let local_db_path = app_handle
         .path()
         .app_config_dir()
@@ -41,5 +44,26 @@ pub fn save_db(app_handle: &AppHandle) {
                 .show()
                 .unwrap();
         }
+    }
+}
+
+#[tauri::command]
+pub fn open_main_window(app_handle: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    {
+        crate::dock::set_dock_visible(true);
+    }
+    if let Some(window) = app_handle.get_webview_window("main") {
+        window.show().unwrap();
+        window.set_focus().unwrap();
+    } else {
+        let url = tauri::WebviewUrl::App(PathBuf::from_str("/index.html").unwrap());
+        tauri::WebviewWindowBuilder::new(app_handle, "main", url)
+            .title("PcPocket")
+            .inner_size(800.0, 600.0)
+            .center()
+            .visible(false)
+            .build()
+            .unwrap();
     }
 }

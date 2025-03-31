@@ -6,6 +6,11 @@ use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
 
 mod commands;
+mod runtime;
+mod tray;
+
+#[cfg(target_os = "macos")]
+mod dock;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -35,7 +40,9 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder
-            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {}))
+            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+                commands::open_main_window(app);
+            }))
             .setup(|app| {
                 use tauri_plugin_autostart::MacosLauncher;
                 use tauri_plugin_autostart::ManagerExt;
@@ -90,6 +97,8 @@ pub fn run() {
                 store.set("dbPath", "");
             }
 
+            tray::create_tray(&app.handle())?;
+
             #[cfg(any(windows, target_os = "linux"))]
             app.deep_link().register_all()?;
 
@@ -98,16 +107,8 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![])
-        .on_window_event(|_window, event| match event {
-            WindowEvent::CloseRequested { api, .. } => {
-                let app_handle = _window.app_handle();
-                api.prevent_close();
-                commands::save_db(app_handle);
-                std::process::exit(0);
-            }
-            _ => {}
-        })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .invoke_handler(tauri::generate_handler![commands::save_db])
+        .build(tauri::generate_context!())
+        .expect("error while running tauri application")
+        .run(runtime::on_run_event);
 }

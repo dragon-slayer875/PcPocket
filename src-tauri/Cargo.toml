@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -44,5 +44,8 @@ strip = true # Ensures debug symbols are removed.
 
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-autostart = "2"
-tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.25.0"
 
