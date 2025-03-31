@@ -11,14 +11,14 @@ use crate::commands;
 pub static EXIT_FLAG: AtomicBool = AtomicBool::new(false);
 
 pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
-    let quit_i = MenuItem::with_id(app, "quit", "Quit PcPocket", true, None::<&str>)?;
+    let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let open_i = MenuItem::with_id(app, "open", "Open PcPocket", true, None::<&str>)?;
     let app_clone = app.clone();
     let app_clone1 = app.clone();
     let menu = Menu::with_items(&app.clone(), &[&open_i, &quit_i])?;
     let _ = TrayIconBuilder::with_id("tray")
         .tooltip("PcPocket")
-        .icon(app.clone().default_window_icon().unwrap().clone())
+        .icon(app.default_window_icon().unwrap().clone())
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
@@ -32,7 +32,6 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
             }
         })
         .on_tray_icon_event(move |_tray, event| {
-            let app_clone = app_clone.clone();
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,

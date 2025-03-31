@@ -1,6 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
-use std::str::FromStr;
+use tauri::WebviewUrl;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_store::StoreExt;
@@ -69,12 +68,9 @@ pub fn open_main_window(app_handle: &AppHandle) {
         } else {
             open_url = "/";
         }
-        let url = tauri::WebviewUrl::App(PathBuf::from_str(open_url).unwrap());
-        tauri::WebviewWindowBuilder::new(app_handle, "main", url)
+        tauri::WebviewWindowBuilder::new(app_handle, "main", WebviewUrl::App(open_url.into()))
             .title("PcPocket")
             .inner_size(800.0, 600.0)
-            .center()
-            .visible(true)
             .build()
             .unwrap();
     }
