@@ -71,15 +71,40 @@ pub fn run() {
             kind: MigrationKind::Up,
         },
     ];
-    let mut builder = tauri::Builder::default().plugin(tauri_plugin_autostart::init());
+
+    let mut builder = tauri::Builder::default();
     #[cfg(desktop)]
     {
-        builder = builder.plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-            let _ = app
-                .get_webview_window("main")
-                .expect("no main window")
-                .set_focus();
-        }));
+        builder = builder
+            .setup(|app| {
+                use tauri_plugin_autostart::MacosLauncher;
+                use tauri_plugin_autostart::ManagerExt;
+
+                let _ = app.handle().plugin(tauri_plugin_autostart::init(
+                    MacosLauncher::LaunchAgent,
+                    Some(vec!["--minimized"]),
+                ));
+
+                // Get the autostart manager
+                let autostart_manager = app.autolaunch();
+                // Enable autostart
+                let _ = autostart_manager.enable();
+                // Check enable state
+                println!(
+                    "registered for autostart? {}",
+                    autostart_manager.is_enabled().unwrap()
+                );
+                // Disable autostart
+                let _ = autostart_manager.disable();
+
+                Ok(())
+            })
+            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
+                let _ = app
+                    .get_webview_window("main")
+                    .expect("no main window")
+                    .set_focus();
+            }));
     }
     builder
         .plugin(tauri_plugin_clipboard_manager::init())
