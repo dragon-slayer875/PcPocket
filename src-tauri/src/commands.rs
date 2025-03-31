@@ -74,7 +74,7 @@ pub fn open_main_window(app_handle: &AppHandle) {
             .title("PcPocket")
             .inner_size(800.0, 600.0)
             .center()
-            .visible(false)
+            .visible(true)
             .build()
             .unwrap();
     }

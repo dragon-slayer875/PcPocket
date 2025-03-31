@@ -1,6 +1,5 @@
 use std::path::Path;
 use tauri::Manager;
-use tauri::WindowEvent;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_sql::{Migration, MigrationKind};
 use tauri_plugin_store::StoreExt;
