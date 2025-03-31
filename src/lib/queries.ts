@@ -26,7 +26,7 @@ import { BaseDirectory, copyFile } from "@tauri-apps/plugin-fs";
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
-    queryFn: async function () {
+    queryFn: async function() {
       return accessStore("get", "dbPath");
     },
   });
@@ -36,12 +36,13 @@ export function useCreateDbMutation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return save({
         defaultPath: "bookmarks.db",
       });
     },
     async onSuccess(dbPath) {
+      if (!dbPath) return;
       await accessStore("set", "dbPath", dbPath);
       navigate({
         to: Route.to,
@@ -55,7 +56,7 @@ export function useCreateDbMutation() {
 export function useOpenDbMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return open();
     },
     async onSuccess(dbPath) {
@@ -74,7 +75,7 @@ export function useGetBookmarksQuery(
 ) {
   return useQuery({
     queryKey: ["bookmarks", pageSize, cursor],
-    queryFn: async function () {
+    queryFn: async function() {
       const bookmarks: BookmarkQueryItem[] = await getBookmarks();
       return bookmarks;
     },
@@ -84,7 +85,7 @@ export function useGetBookmarksQuery(
 export function useGetMetadataQuery(url: string) {
   return useQuery({
     queryKey: ["metadata", url],
-    queryFn: async function () {
+    queryFn: async function() {
       return getLinkPreview(url);
     },
   });
@@ -93,7 +94,7 @@ export function useGetMetadataQuery(url: string) {
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       const path = await open();
       if (path) await importBookmarks(path);
     },
@@ -147,7 +148,7 @@ export function useImportBookmarksMutation() {
 export function useInsertBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       await insertBookmark(bookmark);
     },
     onSuccess() {
@@ -159,7 +160,7 @@ export function useInsertBookmarkMutation() {
 export function useUpdateBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       await updateBookmark(bookmark);
     },
     onSuccess() {
@@ -171,7 +172,7 @@ export function useUpdateBookmarkMutation() {
 export function useUpdateTagsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function ({
+    mutationFn: async function({
       ids,
       tagsToAdd,
       tagsToDelete,
@@ -191,7 +192,7 @@ export function useUpdateTagsMutation() {
 export function useDeleteBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (id: number) {
+    mutationFn: async function(id: number) {
       await deleteBookmark(id);
     },
     onSuccess() {
