@@ -57,7 +57,19 @@ pub fn open_main_window(app_handle: &AppHandle) {
         window.show().unwrap();
         window.set_focus().unwrap();
     } else {
-        let url = tauri::WebviewUrl::App(PathBuf::from_str("/index.html").unwrap());
+        let open_url;
+        if app_handle
+            .store("config.json")
+            .unwrap()
+            .get("dbPath")
+            .unwrap()
+            .is_string()
+        {
+            open_url = "main";
+        } else {
+            open_url = "/";
+        }
+        let url = tauri::WebviewUrl::App(PathBuf::from_str(open_url).unwrap());
         tauri::WebviewWindowBuilder::new(app_handle, "main", url)
             .title("PcPocket")
             .inner_size(800.0, 600.0)
