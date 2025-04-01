@@ -8,11 +8,19 @@ import {
   useGetBookmarksQuery,
   useImportBookmarksMutation,
 } from "@/lib/queries";
+import { getBookmarks } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Import, Plus, PlusCircle } from "lucide-react";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
+  loader: async ({ context }) => {
+    await context.queryClient.prefetchQuery({
+      queryKey: ["bookmarks", "all"],
+      queryFn: () => getBookmarks,
+    });
+    return {};
+  },
 });
 
 function RouteComponent() {
@@ -36,7 +44,7 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col gap-2 p-5 self-end sm:self-baseline">
           <Button
-            onClick={function() {
+            onClick={function () {
               importBookmarksMutation.mutate();
             }}
             size={"lg"}
@@ -59,10 +67,8 @@ function RouteComponent() {
   }
 
   return (
-    <>
-      <div className="flex flex-1 flex-col gap-2">
-        <DataTable data={data} columns={columns} />
-      </div>
-    </>
+    <div className="flex flex-1 flex-col gap-2">
+      <DataTable data={data} columns={columns} />
+    </div>
   );
 }
