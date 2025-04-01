@@ -49,6 +49,10 @@ export function DataTable<TData, TValue>({
     id: false,
     created_at: false,
   });
+  const [pagination, setPagination] = useState({
+    pageIndex: 0,
+    pageSize: 20,
+  });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -63,15 +67,13 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: setPagination,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination: {
-        pageIndex: 0,
-        pageSize: 20,
-      },
+      pagination,
     },
   });
 
@@ -114,7 +116,7 @@ export function DataTable<TData, TValue>({
     document.addEventListener("keydown", handleFindShortcut);
     document.addEventListener("keydown", handleCopyShortcut);
 
-    return function() {
+    return function () {
       document.removeEventListener("keydown", handleFindShortcut);
       document.removeEventListener("keydown", handleCopyShortcut);
     };
@@ -132,7 +134,7 @@ export function DataTable<TData, TValue>({
       }));
     }
 
-    return function() {
+    return function () {
       if (table.getSelectedRowModel().rows.length === 1) setRowSelection({});
     };
   }, [data, table.getFilteredRowModel()]);
@@ -211,9 +213,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
