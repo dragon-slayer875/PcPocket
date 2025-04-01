@@ -6,6 +6,7 @@ import {
   RowSelectionState,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
@@ -58,6 +59,7 @@ export function DataTable<TData, TValue>({
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
+    getPaginationRowModel: getPaginationRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
@@ -66,6 +68,10 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: {
+        pageIndex: 0,
+        pageSize: 20,
+      },
     },
   });
 
@@ -108,7 +114,7 @@ export function DataTable<TData, TValue>({
     document.addEventListener("keydown", handleFindShortcut);
     document.addEventListener("keydown", handleCopyShortcut);
 
-    return function () {
+    return function() {
       document.removeEventListener("keydown", handleFindShortcut);
       document.removeEventListener("keydown", handleCopyShortcut);
     };
@@ -126,13 +132,13 @@ export function DataTable<TData, TValue>({
       }));
     }
 
-    return function () {
+    return function() {
       if (table.getSelectedRowModel().rows.length === 1) setRowSelection({});
     };
   }, [data, table.getFilteredRowModel()]);
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       <div className="flex justify-between mb-2">
         <Input
           placeholder="Filter links: title#tag1#tag2"
@@ -194,7 +200,7 @@ export function DataTable<TData, TValue>({
           </DropdownMenu>
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -205,9 +211,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -243,6 +249,24 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
+      </div>
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
+        >
+          Previous
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
+        >
+          Next
+        </Button>
       </div>
     </div>
   );
