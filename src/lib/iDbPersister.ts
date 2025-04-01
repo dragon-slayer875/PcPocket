@@ -7,10 +7,12 @@ import {
 export function createIDBPersister(idbValidKey: IDBValidKey = "reactQuery") {
   return {
     persistClient: async (client: PersistedClient) => {
-      await set(idbValidKey, client);
+      await set(idbValidKey, JSON.stringify(client));
     },
     restoreClient: async () => {
-      return await get<PersistedClient>(idbValidKey);
+      return (await JSON.parse(
+        (await get(idbValidKey)) || "null",
+      )) as PersistedClient;
     },
     removeClient: async () => {
       await del(idbValidKey);
