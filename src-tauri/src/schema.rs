@@ -2,7 +2,7 @@
 
 diesel::table! {
     bookmarks_table (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         title -> Text,
         link -> Text,
         icon_link -> Nullable<Text>,
@@ -19,4 +19,7 @@ diesel::table! {
 
 diesel::joinable!(tags_table -> bookmarks_table (bookmark_id));
 
-diesel::allow_tables_to_appear_in_same_query!(bookmarks_table, tags_table,);
+diesel::allow_tables_to_appear_in_same_query!(
+    bookmarks_table,
+    tags_table,
+);

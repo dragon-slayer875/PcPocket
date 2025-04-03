@@ -1,6 +1,6 @@
 -- Table to store bookmarks
 CREATE TABLE bookmarks_table (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   title TEXT NOT NULL,
   link TEXT NOT NULL,
   icon_link TEXT,
