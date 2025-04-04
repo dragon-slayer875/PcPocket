@@ -2,9 +2,14 @@ use tauri::async_runtime::spawn;
 use tauri_plugin_sql::{Migration, MigrationKind};
 
 mod commands;
+mod database_cmds;
+mod models;
 mod runtime;
+mod schema;
 mod setup;
+mod structs;
 mod tray;
+mod utils;
 
 #[cfg(target_os = "macos")]
 mod dock;
@@ -83,7 +88,13 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_persisted_scope::init())
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![commands::save_db])
+        .invoke_handler(tauri::generate_handler![
+            commands::get_db_path,
+            commands::create_db,
+            commands::open_db,
+            commands::get_bookmarks,
+            commands::import_bookmarks,
+        ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")
         .run(runtime::on_run_event);

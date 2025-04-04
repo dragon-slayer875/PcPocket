@@ -24,7 +24,6 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
                 EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
-                commands::save_db(app.clone());
                 app.exit(0);
             }
             if event.id.as_ref() == "open" {

@@ -11,6 +11,10 @@ import {
 import { getBookmarks } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Import, Plus, PlusCircle } from "lucide-react";
+import { useEffect } from "react";
+import { listen } from "@tauri-apps/api/event";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/main/")({
   component: RouteComponent,
@@ -26,6 +30,44 @@ export const Route = createFileRoute("/main/")({
 function RouteComponent() {
   const importBookmarksMutation = useImportBookmarksMutation();
   const { data, error, isPending, isError } = useGetBookmarksQuery("all");
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const unlistenImportStart = listen("import-started", () => {
+      toast("Importing bookmarks", {
+        duration: Infinity,
+      });
+    });
+
+    const unlistenBookmarksUpdate = listen("bookmarks-updated", () => {
+      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+      console.log("bookmarks-updated");
+    });
+
+    const unlistenImportError = listen("import-failed", () => {
+      toast.error("Import Failed");
+    });
+
+    const unlistenImportFinish = listen("import-finished", () => {
+      toast.dismiss();
+      toast("Import Finished");
+    });
+
+    return () => {
+      unlistenImportStart.then((unlisten) => {
+        unlisten();
+      });
+      unlistenBookmarksUpdate.then((unlisten) => {
+        unlisten();
+      });
+      unlistenImportError.then((unlisten) => {
+        unlisten();
+      });
+      unlistenImportFinish.then((unlisten) => {
+        unlisten();
+      });
+    };
+  }, []);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -44,7 +86,7 @@ function RouteComponent() {
         </div>
         <div className="flex flex-col gap-2 p-5 self-end sm:self-baseline">
           <Button
-            onClick={function () {
+            onClick={function() {
               importBookmarksMutation.mutate();
             }}
             size={"lg"}
