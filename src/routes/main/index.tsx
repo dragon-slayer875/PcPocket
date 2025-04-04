@@ -8,7 +8,6 @@ import {
   useGetBookmarksQuery,
   useImportBookmarksMutation,
 } from "@/lib/queries";
-import { getBookmarks } from "@/lib/utils";
 import { createFileRoute } from "@tanstack/react-router";
 import { Import, Plus, PlusCircle } from "lucide-react";
 import { useEffect } from "react";
@@ -21,7 +20,7 @@ export const Route = createFileRoute("/main/")({
   loader: async ({ context }) => {
     await context.queryClient.prefetchQuery({
       queryKey: ["bookmarks", "all"],
-      queryFn: () => getBookmarks,
+      queryFn: () => { },
     });
     return {};
   },

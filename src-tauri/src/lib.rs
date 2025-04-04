@@ -94,6 +94,10 @@ pub fn run() {
             commands::open_db,
             commands::get_bookmarks,
             commands::import_bookmarks,
+            database_cmds::bookmark_insert,
+            database_cmds::bookmark_update,
+            database_cmds::bookmark_delete,
+            database_cmds::tags_update,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

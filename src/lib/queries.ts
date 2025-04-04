@@ -1,11 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { save, open } from "@tauri-apps/plugin-dialog";
-import {
-  deleteBookmark,
-  insertBookmark,
-  updateBookmark,
-  updateTags,
-} from "./utils";
 import { BookmarkMutationItem, BookmarkQueryItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/main";
@@ -103,9 +97,16 @@ export function useInsertBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function(bookmark: BookmarkMutationItem) {
-      await insertBookmark(bookmark);
+      const bookmarkClone = structuredClone(bookmark);
+      if (bookmarkClone.tags) {
+        delete bookmarkClone.tags;
+      }
+      return invoke("bookmark_insert", {
+        bookmark: bookmarkClone,
+        tags: bookmark.tags,
+      });
     },
-    onSuccess() {
+    async onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
     },
   });
@@ -115,7 +116,14 @@ export function useUpdateBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function(bookmark: BookmarkMutationItem) {
-      await updateBookmark(bookmark);
+      const bookmarkClone = structuredClone(bookmark);
+      if (bookmarkClone.tags) {
+        delete bookmarkClone.tags;
+      }
+      return invoke("bookmark_update", {
+        bookmark: bookmarkClone,
+        tags: bookmark.tags,
+      });
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
@@ -135,7 +143,11 @@ export function useUpdateTagsMutation() {
       tagsToAdd: string[];
       tagsToDelete: string[];
     }) {
-      await updateTags(ids, tagsToAdd, tagsToDelete);
+      return invoke("bookmark_update_tags", {
+        ids,
+        tagsToAdd,
+        tagsToDelete,
+      });
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
@@ -147,7 +159,9 @@ export function useDeleteBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function(id: number) {
-      await deleteBookmark(id);
+      return invoke("bookmark_delete", {
+        deleteId: id,
+      });
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
