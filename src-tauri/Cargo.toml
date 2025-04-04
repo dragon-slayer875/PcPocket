@@ -31,8 +31,9 @@ tauri-plugin-notification = "2"
 tauri-plugin-http = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-deep-link = "2"
-diesel = { version = "2.2.8", features = ["r2d2", "sqlite", "returning_clauses_for_sqlite_3_35"] }
+diesel = { version = "2.2.8", features = ["r2d2", "time", "sqlite", "returning_clauses_for_sqlite_3_35"] }
 diesel_migrations = "2.2.0"
+time = "0.3.41"
 
 [profile.dev]
 incremental = true # Compile your binary in smaller steps.

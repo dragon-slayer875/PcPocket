@@ -1,10 +1,10 @@
 -- Table to store bookmarks
 CREATE TABLE bookmarks_table (
   id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  title TEXT NOT NULL,
+  title TEXT,
   link TEXT NOT NULL,
   icon_link TEXT,
-  created_at INTEGER NOT NULL DEFAULT (strftime('%s','now'))
+  created_at TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
 );
 
 -- Table to store tags for bookmarks
