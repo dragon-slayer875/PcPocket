@@ -1,4 +1,4 @@
-use crate::models::{Bookmark, TagNew};
+use crate::models::{BookmarkNew, TagNew};
 use crate::schema::bookmarks_table::id;
 use crate::schema::tags_table::bookmark_id;
 use diesel::backend::Backend;
@@ -9,7 +9,6 @@ use std::error::Error;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::models::BookmarkNew;
 use crate::setup::AppData;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
@@ -128,7 +127,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
 }
 
 #[tauri::command]
-pub fn bookmark_update(app: AppHandle, bookmark: Bookmark, tags: Vec<String>) {
+pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: Vec<String>) {
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
@@ -141,20 +140,20 @@ pub fn bookmark_update(app: AppHandle, bookmark: Bookmark, tags: Vec<String>) {
 
         // Update bookmark
         diesel::update(bookmarks_table::table)
-            .filter(id.eq(bookmark.id))
+            .filter(id.eq(index))
             .set(&bookmark)
             .execute(conn)?;
 
         // Delete existing tags for this bookmark
         diesel::delete(tags_table::table)
-            .filter(bookmark_id.eq(bookmark.id))
+            .filter(bookmark_id.eq(index))
             .execute(conn)?;
 
         // Insert new tags for this specific bookmark
         for tag_name in tags {
             // Create a new tag record
             let tag = TagNew {
-                bookmark_id: bookmark.id,
+                bookmark_id: index,
                 tag_name,
             };
 

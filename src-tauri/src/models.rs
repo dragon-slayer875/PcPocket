@@ -1,7 +1,7 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Selectable, AsChangeset, Debug, Serialize, Deserialize, Clone)]
+#[derive(Queryable, Selectable, Debug, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::bookmarks_table)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 pub struct Bookmark {
@@ -12,7 +12,7 @@ pub struct Bookmark {
     pub created_at: String,
 }
 
-#[derive(Insertable, Deserialize, Debug)]
+#[derive(Insertable, Deserialize, Debug, AsChangeset)]
 #[diesel(table_name = crate::schema::bookmarks_table)]
 pub struct BookmarkNew {
     pub title: Option<String>,
