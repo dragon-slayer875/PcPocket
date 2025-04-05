@@ -27,7 +27,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useEffect, useRef, useState, memo, useMemo, useCallback } from "react";
+import { useEffect, useRef, useState, memo, useCallback, useMemo } from "react";
 import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
@@ -47,7 +47,10 @@ const MemoizedCell = memo(({ cell }: { cell: any }) => {
 export function DataTable<TData, TValue>({
   columns,
   data,
-}: DataTableProps<TData, TValue>) {
+  fetchMoreOnBottomReached,
+}: DataTableProps<TData, TValue> & {
+  fetchMoreOnBottomReached: (tableRef: HTMLDivElement | null) => void;
+}) {
   const [windowedData, setWindowedData] = useState<TData[]>([]);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -84,6 +87,7 @@ export function DataTable<TData, TValue>({
       columnVisibility,
       rowSelection,
     },
+    debugTable: true,
   });
 
   const { rows } = table.getRowModel();
@@ -97,12 +101,12 @@ export function DataTable<TData, TValue>({
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-        navigator.userAgent.indexOf("Firefox") === -1
+      navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => {
-          // Only measure if the element exists and its height might have changed
-          if (!element) return 33;
-          return element.getBoundingClientRect().height;
-        }
+            // Only measure if the element exists and its height might have changed
+            if (!element) return 33;
+            return element.getBoundingClientRect().height;
+          }
         : undefined,
     overscan: 3,
   });
@@ -177,11 +181,19 @@ export function DataTable<TData, TValue>({
 
   useEffect(() => {
     // Only load the first 1000 items initially
-    setWindowedData(data.slice(0, 1000));
+    if (data.length <= 300) {
+      setWindowedData(data);
+      return;
+    }
+    setWindowedData(data.slice(0, 300));
 
     // If you need to support filtering on all data, keep the full dataset
     // for filtering but only render the windowed subset
   }, [data]);
+
+  useEffect(() => {
+    fetchMoreOnBottomReached(tableContainerRef.current);
+  }, [fetchMoreOnBottomReached]);
 
   let renderCount = 0;
   renderCount++;
@@ -252,9 +264,10 @@ export function DataTable<TData, TValue>({
       <div
         className="rounded-md border overflow-auto relative"
         ref={tableContainerRef}
+        onScroll={(e) => fetchMoreOnBottomReached(e.currentTarget)}
       >
-        <Table className="grid">
-          <TableHeader className="sticky grid top-0 z-10">
+        <Table className="grid table-fixed border-collapse">
+          <TableHeader className="sticky grid top-0 z-1">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow
                 key={headerGroup.id}

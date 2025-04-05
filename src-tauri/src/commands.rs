@@ -1,24 +1,15 @@
 use crate::models::{Bookmark, Tag};
 use diesel::associations::HasTable;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
-use serde::Serialize;
 use std::fs;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_notification::NotificationExt;
-use tauri_plugin_store::StoreExt;
 
 use crate::setup::AppData;
-use crate::structs::BrowserJsonBookmarkItem;
+use crate::structs::{BookmarkWithTags, BrowserJsonBookmarkItem};
 use crate::{database_cmds, utils};
-
-#[derive(Serialize, Debug)]
-pub struct BookmarkWithTags {
-    #[serde(flatten)]
-    pub bookmark: Bookmark,
-    pub tags: Vec<String>,
-}
 
 #[tauri::command]
 pub fn open_main_window(app_handle: &AppHandle) {
@@ -31,13 +22,9 @@ pub fn open_main_window(app_handle: &AppHandle) {
         window.set_focus().unwrap();
     } else {
         let open_url;
-        if app_handle
-            .store("config.json")
-            .unwrap()
-            .get("dbPath")
-            .unwrap()
-            .is_string()
-        {
+        let binding = app_handle.state::<Mutex<AppData>>();
+        let app_data = binding.lock().unwrap();
+        if !app_data.db_path.is_empty() {
             open_url = "main";
         } else {
             open_url = "/";
@@ -91,13 +78,15 @@ pub fn get_bookmarks(
         bookmarks_table::table()
             .left_join(tags_table::table())
             .filter(id.gt(index))
+            .order_by(id.asc())
             .load::<(Bookmark, Option<Tag>)>(&mut conn)
             .unwrap()
     } else {
         bookmarks_table::table()
             .left_join(tags_table::table())
             .filter(id.gt(index))
-            .limit(page_size.unwrap_or(10))
+            .filter(id.le(index + page_size.unwrap_or(10) as i32))
+            .order_by(id.asc())
             .load::<(Bookmark, Option<Tag>)>(&mut conn)
             .unwrap()
     };
@@ -114,8 +103,6 @@ pub fn get_bookmarks(
             entry.tags.push(tag.tag_name);
         }
     }
-
-    println!("Bookmarks: {:?}", bookmark_map);
 
     return bookmark_map.into_iter().map(|(_, v)| v).collect();
 }

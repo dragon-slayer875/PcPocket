@@ -1,4 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { BookmarkMutationItem, BookmarkQueryItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
@@ -54,16 +60,31 @@ export function useOpenDbMutation() {
   });
 }
 
-export function useGetBookmarksQuery(pageSize: number | "all", index?: number) {
-  return useQuery({
-    queryKey: ["bookmarks", pageSize, index],
-    queryFn: async function(): Promise<BookmarkQueryItem[]> {
+export function useGetBookmarksQuery(pageSize: number) {
+  return useInfiniteQuery({
+    queryKey: ["bookmarks", pageSize],
+    initialPageParam: 0,
+    queryFn: async function({ pageParam }): Promise<BookmarkQueryItem[]> {
       const bookmarks = await invoke("get_bookmarks", {
-        index: 0,
-        all: true,
+        index: pageParam,
+        pageSize,
       });
       return bookmarks as BookmarkQueryItem[];
     },
+    getNextPageParam: (lastPage, _allPages, lastPageParam) => {
+      if (lastPage.length < pageSize) {
+        return undefined;
+      }
+      return lastPageParam + pageSize;
+    },
+    getPreviousPageParam: (_firstPage, _allPages, firstPageParam) => {
+      if (firstPageParam <= 1) {
+        return undefined;
+      }
+      return firstPageParam - pageSize;
+    },
+    refetchOnWindowFocus: false,
+    placeholderData: keepPreviousData,
   });
 }
 

@@ -10,7 +10,7 @@ import {
 } from "@/lib/queries";
 import { createFileRoute } from "@tanstack/react-router";
 import { Import, Plus, PlusCircle } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -28,8 +28,33 @@ export const Route = createFileRoute("/main/")({
 
 function RouteComponent() {
   const importBookmarksMutation = useImportBookmarksMutation();
-  const { data, error, isPending, isError } = useGetBookmarksQuery("all");
+  const { data, error, isFetching, isLoading, isError, fetchNextPage } =
+    useGetBookmarksQuery(10);
   const queryClient = useQueryClient();
+
+  const flatData = useMemo(
+    () => data?.pages?.flatMap((page) => page) ?? [],
+    [data],
+  );
+
+  const totalDBRowCount = 1000;
+  const totalFetched = flatData.length;
+  const fetchMoreOnBottomReached = useCallback(
+    (containerRefElement?: HTMLDivElement | null) => {
+      if (containerRefElement) {
+        const { scrollHeight, scrollTop, clientHeight } = containerRefElement;
+        //once the user has scrolled within 500px of the bottom of the table, fetch more data if we can
+        if (
+          scrollHeight - scrollTop - clientHeight < 500 &&
+          !isFetching &&
+          totalFetched < totalDBRowCount
+        ) {
+          fetchNextPage();
+        }
+      }
+    },
+    [fetchNextPage, isFetching, totalFetched, totalDBRowCount],
+  );
 
   useEffect(() => {
     const unlistenImportStart = listen("import-started", () => {
@@ -40,7 +65,7 @@ function RouteComponent() {
 
     const unlistenBookmarksUpdate = listen("bookmarks-updated", () => {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      console.log("bookmarks-updated");
+      toast("Bookmarks Updated");
     });
 
     const unlistenImportError = listen("import-failed", () => {
@@ -68,7 +93,7 @@ function RouteComponent() {
     };
   }, []);
 
-  if (isPending) {
+  if (isLoading) {
     return <div>Loading...</div>;
   }
 
@@ -76,7 +101,7 @@ function RouteComponent() {
     return <div>Error: {error.message}</div>;
   }
 
-  if (data.length === 0) {
+  if (data!.pages[0].length === 0) {
     return (
       <div className="flex-1 grid grid-rows-2 sm:max-w-sm">
         <div className="flex gap-3 items-center self-end justify-center">
@@ -109,7 +134,11 @@ function RouteComponent() {
 
   return (
     <div className="flex flex-1 flex-col gap-2">
-      <DataTable data={data} columns={columns} />
+      <DataTable
+        fetchMoreOnBottomReached={fetchMoreOnBottomReached}
+        data={flatData}
+        columns={columns}
+      />
     </div>
   );
 }

@@ -35,7 +35,6 @@
     "@tauri-apps/plugin-http": "^2.4.2",
     "@tauri-apps/plugin-notification": "^2.2.2",
     "@tauri-apps/plugin-opener": "^2",
-    "@tauri-apps/plugin-store": "^2.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "idb-keyval": "^6.2.1",

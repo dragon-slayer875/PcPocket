@@ -24,13 +24,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "../separator";
 import { Input } from "../input";
 
-export type Payment = {
-  id: string;
-  amount: number;
-  status: "pending" | "processing" | "success" | "failed";
-  email: string;
-};
-
 export const columns: ColumnDef<BookmarkQueryItem>[] = [
   {
     id: "select",
@@ -208,9 +201,14 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       );
     },
     cell: ({ row }) => {
-      let date = row.getValue("created_at") as Date;
-      date = new Date(date);
-      return date.toLocaleDateString();
+      const dateValue = row.getValue("created_at") as string;
+      const date = new Date(dateValue);
+      return (
+        <div>
+          {dateValue}
+          {date.toLocaleString()}
+        </div>
+      );
     },
   },
   {
