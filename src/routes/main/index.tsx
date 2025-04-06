@@ -36,6 +36,13 @@ function RouteComponent() {
     () => data?.pages?.flatMap((page) => page) ?? [],
     [data],
   );
+  if (isLoading) {
+    toast("Loading bookmarks");
+  }
+
+  if (isError) {
+    toast.error(`Error loading bookmarks: ${error}`);
+  }
 
   const totalDBRowCount = 1000;
   const totalFetched = flatData.length;
@@ -58,9 +65,7 @@ function RouteComponent() {
 
   useEffect(() => {
     const unlistenImportStart = listen("import-started", () => {
-      toast("Importing bookmarks", {
-        duration: Infinity,
-      });
+      toast("Importing bookmarks", {});
     });
 
     const unlistenBookmarksUpdate = listen("bookmarks-updated", () => {
@@ -92,14 +97,6 @@ function RouteComponent() {
       });
     };
   }, []);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (isError) {
-    return <div>Error: {error.message}</div>;
-  }
 
   if (data!.pages[0].length === 0) {
     return (
