@@ -16,8 +16,8 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
-import useMediaQuery from "@/lib/hooks";
 import { Button } from "./button";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function DrawerDialog({
   open,
@@ -34,7 +34,7 @@ export function DrawerDialog({
   description?: string;
   title: string;
 }) {
-  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const isDesktop = !useIsMobile();
   if (isDesktop) {
     return (
       <Dialog open={open} onOpenChange={setOpen}>

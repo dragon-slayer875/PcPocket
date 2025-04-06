@@ -130,7 +130,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-2">
+    <div className="flex flex-1 flex-col gap-2 px-3 py-4 md:p-4">
       <DataTable
         fetchMoreOnBottomReached={fetchMoreOnBottomReached}
         data={flatData}
