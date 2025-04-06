@@ -1,10 +1,11 @@
 use crate::models::{Bookmark, Tag};
+use crate::utils::send_notification;
 use diesel::associations::HasTable;
 use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
 use std::fs;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
-use tauri::{AppHandle, Emitter, Manager, State};
+use tauri::{AppHandle, Manager, State};
 use tauri_plugin_notification::NotificationExt;
 
 use crate::setup::AppData;
@@ -91,8 +92,8 @@ pub fn get_bookmarks(
             .unwrap()
     };
 
-    let mut bookmark_map: std::collections::HashMap<i32, BookmarkWithTags> =
-        std::collections::HashMap::new();
+    let mut bookmark_map: std::collections::BTreeMap<i32, BookmarkWithTags> =
+        std::collections::BTreeMap::new();
 
     for (bookmark, tag) in bookmarks {
         let entry = bookmark_map.entry(bookmark.id).or_insert(BookmarkWithTags {
@@ -126,33 +127,20 @@ pub fn import_bookmarks(app: AppHandle, file_path: String) {
         }
     };
 
-    app.app_handle()
-        .emit(
-            "import-started",
-            utils::count_json_bookmarks(bookmarks_json.clone()),
-        )
-        .unwrap();
-
     let import_result = utils::batch_browser_json_import(&bookmarks_json, &app);
 
     match import_result {
         Ok(_) => {
-            app.notification()
-                .builder()
-                .title("PcPocket")
-                .body("Bookmarks imported successfully")
-                .show()
-                .unwrap();
-            app.app_handle().emit("import-completed", ()).unwrap();
+            send_notification(&app, "PcPocket", "Bookmarks imported successfully")
+                .expect("Failed to send notification");
         }
         Err(e) => {
-            app.notification()
-                .builder()
-                .title("PcPocket")
-                .body(format!("Error importing bookmarks: {}", e))
-                .show()
-                .unwrap();
-            app.app_handle().emit("import-failed", ()).unwrap();
+            send_notification(
+                &app,
+                "PcPocket",
+                &format!("Error importing bookmarks: {}", e),
+            )
+            .expect("Failed to send notification");
         }
     }
 }

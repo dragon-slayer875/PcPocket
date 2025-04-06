@@ -64,35 +64,12 @@ function RouteComponent() {
   );
 
   useEffect(() => {
-    const unlistenImportStart = listen("import-started", () => {
-      toast("Importing bookmarks", {});
-    });
-
     const unlistenBookmarksUpdate = listen("bookmarks-updated", () => {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      toast("Bookmarks Updated");
-    });
-
-    const unlistenImportError = listen("import-failed", () => {
-      toast.error("Import Failed");
-    });
-
-    const unlistenImportFinish = listen("import-finished", () => {
-      toast.dismiss();
-      toast("Import Finished");
     });
 
     return () => {
-      unlistenImportStart.then((unlisten) => {
-        unlisten();
-      });
       unlistenBookmarksUpdate.then((unlisten) => {
-        unlisten();
-      });
-      unlistenImportError.then((unlisten) => {
-        unlisten();
-      });
-      unlistenImportFinish.then((unlisten) => {
         unlisten();
       });
     };
@@ -130,7 +107,7 @@ function RouteComponent() {
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-2 px-3 py-4 md:p-4">
+    <div className="flex flex-1 flex-col gap-2">
       <DataTable
         fetchMoreOnBottomReached={fetchMoreOnBottomReached}
         data={flatData}

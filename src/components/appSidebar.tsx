@@ -6,6 +6,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Route } from "@/routes/main/bookmarks";
 import { Link } from "@tanstack/react-router";
@@ -34,6 +35,7 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarContent>
         <SidebarMenu className="gap-3 p-2">
+          <SidebarTrigger className="p-3" />
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>

@@ -5,6 +5,7 @@ use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
 use tauri::AppHandle;
+use tauri_plugin_notification::NotificationExt;
 use time::OffsetDateTime;
 
 pub fn count_json_bookmarks(root: BrowserJsonBookmarkItem) -> usize {
@@ -127,5 +128,18 @@ pub fn write_app_data_storage<P: AsRef<Path>>(path: P, storage: &AppDataStorage)
     // Write JSON content to file
     file.write_all(json_content.as_bytes())?;
 
+    Ok(())
+}
+
+pub fn send_notification(
+    app: &AppHandle,
+    title: &str,
+    body: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    app.notification()
+        .builder()
+        .title(title)
+        .body(body)
+        .show()?;
     Ok(())
 }

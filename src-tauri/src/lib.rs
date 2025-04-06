@@ -1,4 +1,8 @@
+use database_cmds::bookmark_insert;
+use models::BookmarkNew;
 use tauri::async_runtime::spawn;
+use tauri::Manager;
+use url::Url;
 
 mod commands;
 mod database_cmds;
@@ -19,8 +23,42 @@ pub fn run() {
     #[cfg(desktop)]
     {
         builder = builder
-            .plugin(tauri_plugin_single_instance::init(|app, args, cwd| {
-                commands::open_main_window(app);
+            .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+                if args.len() > 0 {
+                    let arg = args[1].to_string();
+                    if arg.starts_with("pcpocket://") {
+                        let app_handle = app.app_handle().clone();
+                        let url = Url::parse(&arg).unwrap();
+                        let title = url
+                            .query_pairs()
+                            .find(|(key, _)| key == "title")
+                            .map(|(_, value)| value.to_string())
+                            .unwrap_or_default();
+                        let link = url
+                            .query_pairs()
+                            .find(|(key, _)| key == "link")
+                            .map(|(_, value)| value.to_string())
+                            .unwrap_or_default();
+                        let icon_link = url
+                            .query_pairs()
+                            .find(|(key, _)| key == "icon_link")
+                            .map(|(_, value)| value.to_string())
+                            .unwrap_or_default();
+                        let tags = url
+                            .query_pairs()
+                            .find(|(key, _)| key == "tags")
+                            .map(|(_, value)| value.to_string())
+                            .unwrap_or_default();
+                        let tags: Vec<String> = tags.split(',').map(|s| s.to_string()).collect();
+                        let bookmark = BookmarkNew {
+                            title: Some(title),
+                            link,
+                            icon_link: Some(icon_link),
+                            created_at: None,
+                        };
+                        bookmark_insert(app_handle, bookmark, tags);
+                    }
+                }
             }))
             .setup(|app| {
                 use tauri_plugin_autostart::MacosLauncher;

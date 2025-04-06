@@ -1,6 +1,7 @@
 use crate::models::{BookmarkNew, TagNew};
 use crate::schema::bookmarks_table::id;
 use crate::schema::tags_table::bookmark_id;
+use crate::utils::send_notification;
 use diesel::backend::Backend;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
@@ -106,6 +107,9 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
 
         // Insert tags for this specific bookmark
         for tag_name in tags {
+            if tag_name.is_empty() {
+                continue; // Skip empty tags
+            }
             // Create a new tag record
             let tag = TagNew {
                 bookmark_id: insert_id,
@@ -124,6 +128,8 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    send_notification(&app, "PcPocket", "Bookmark added successfully")
+        .expect("Failed to send notification");
 }
 
 #[tauri::command]
@@ -169,6 +175,8 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    send_notification(&app, "PcPocket", "Bookmark updated successfully")
+        .expect("Failed to send notification");
 }
 
 #[tauri::command]
@@ -191,6 +199,8 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    send_notification(&app, "PcPocket", "Bookmark deleted successfully")
+        .expect("Failed to send notification");
 }
 
 #[tauri::command]
@@ -240,4 +250,6 @@ pub fn tags_update(
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    send_notification(&app, "PcPocket", "Tags updated successfully")
+        .expect("Failed to send notification");
 }

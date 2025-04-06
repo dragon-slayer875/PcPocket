@@ -11,11 +11,18 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
+import { Route as MainImport } from './routes/main'
 import { Route as IndexImport } from './routes/index'
 import { Route as MainIndexImport } from './routes/main/index'
 import { Route as MainBookmarksImport } from './routes/main/bookmarks'
 
 // Create/Update Routes
+
+const MainRoute = MainImport.update({
+  id: '/main',
+  path: '/main',
+  getParentRoute: () => rootRoute,
+} as any)
 
 const IndexRoute = IndexImport.update({
   id: '/',
@@ -24,15 +31,15 @@ const IndexRoute = IndexImport.update({
 } as any)
 
 const MainIndexRoute = MainIndexImport.update({
-  id: '/main/',
-  path: '/main/',
-  getParentRoute: () => rootRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => MainRoute,
 } as any)
 
 const MainBookmarksRoute = MainBookmarksImport.update({
-  id: '/main/bookmarks',
-  path: '/main/bookmarks',
-  getParentRoute: () => rootRoute,
+  id: '/bookmarks',
+  path: '/bookmarks',
+  getParentRoute: () => MainRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -46,29 +53,49 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/main': {
+      id: '/main'
+      path: '/main'
+      fullPath: '/main'
+      preLoaderRoute: typeof MainImport
+      parentRoute: typeof rootRoute
+    }
     '/main/bookmarks': {
       id: '/main/bookmarks'
-      path: '/main/bookmarks'
+      path: '/bookmarks'
       fullPath: '/main/bookmarks'
       preLoaderRoute: typeof MainBookmarksImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof MainImport
     }
     '/main/': {
       id: '/main/'
-      path: '/main'
-      fullPath: '/main'
+      path: '/'
+      fullPath: '/main/'
       preLoaderRoute: typeof MainIndexImport
-      parentRoute: typeof rootRoute
+      parentRoute: typeof MainImport
     }
   }
 }
 
 // Create and export the route tree
 
+interface MainRouteChildren {
+  MainBookmarksRoute: typeof MainBookmarksRoute
+  MainIndexRoute: typeof MainIndexRoute
+}
+
+const MainRouteChildren: MainRouteChildren = {
+  MainBookmarksRoute: MainBookmarksRoute,
+  MainIndexRoute: MainIndexRoute,
+}
+
+const MainRouteWithChildren = MainRoute._addFileChildren(MainRouteChildren)
+
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/main': typeof MainRouteWithChildren
   '/main/bookmarks': typeof MainBookmarksRoute
-  '/main': typeof MainIndexRoute
+  '/main/': typeof MainIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -80,29 +107,28 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/main': typeof MainRouteWithChildren
   '/main/bookmarks': typeof MainBookmarksRoute
   '/main/': typeof MainIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/main/bookmarks' | '/main'
+  fullPaths: '/' | '/main' | '/main/bookmarks' | '/main/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/main/bookmarks' | '/main'
-  id: '__root__' | '/' | '/main/bookmarks' | '/main/'
+  id: '__root__' | '/' | '/main' | '/main/bookmarks' | '/main/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  MainBookmarksRoute: typeof MainBookmarksRoute
-  MainIndexRoute: typeof MainIndexRoute
+  MainRoute: typeof MainRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  MainBookmarksRoute: MainBookmarksRoute,
-  MainIndexRoute: MainIndexRoute,
+  MainRoute: MainRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -116,18 +142,26 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
-        "/main/bookmarks",
-        "/main/"
+        "/main"
       ]
     },
     "/": {
       "filePath": "index.tsx"
     },
+    "/main": {
+      "filePath": "main.tsx",
+      "children": [
+        "/main/bookmarks",
+        "/main/"
+      ]
+    },
     "/main/bookmarks": {
-      "filePath": "main/bookmarks.tsx"
+      "filePath": "main/bookmarks.tsx",
+      "parent": "/main"
     },
     "/main/": {
-      "filePath": "main/index.tsx"
+      "filePath": "main/index.tsx",
+      "parent": "/main"
     }
   }
 }

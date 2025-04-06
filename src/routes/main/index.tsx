@@ -5,5 +5,5 @@ export const Route = createFileRoute("/main/")({
 });
 
 function RouteComponent() {
-  <Outlet />;
+  return <Outlet />;
 }
