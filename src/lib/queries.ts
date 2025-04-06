@@ -8,14 +8,14 @@ import {
 import { save, open } from "@tauri-apps/plugin-dialog";
 import { BookmarkMutationItem, BookmarkQueryItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
-import { Route } from "@/routes/main";
+import { Route } from "@/routes/main/bookmarks";
 import { getLinkPreview } from "link-preview-js";
 import { invoke } from "@tauri-apps/api/core";
 
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
-    queryFn: async function () {
+    queryFn: async function() {
       return invoke("get_db_path");
     },
   });
@@ -25,7 +25,7 @@ export function useCreateDbMutation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return save({
         defaultPath: "bookmarks.db",
       });
@@ -47,7 +47,7 @@ export function useCreateDbMutation() {
 export function useOpenDbMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return open();
     },
     async onSuccess(dbPath) {
@@ -64,7 +64,7 @@ export function useGetBookmarksQuery(pageSize: number) {
   return useInfiniteQuery({
     queryKey: ["bookmarks", pageSize],
     initialPageParam: 0,
-    queryFn: async function ({ pageParam }): Promise<BookmarkQueryItem[]> {
+    queryFn: async function({ pageParam }): Promise<BookmarkQueryItem[]> {
       const bookmarks = await invoke("get_bookmarks", {
         index: pageParam,
         pageSize,
@@ -91,7 +91,7 @@ export function useGetBookmarksQuery(pageSize: number) {
 export function useGetMetadataQuery(url: string) {
   return useQuery({
     queryKey: ["metadata", url],
-    queryFn: async function () {
+    queryFn: async function() {
       return getLinkPreview(url);
     },
   });
@@ -100,7 +100,7 @@ export function useGetMetadataQuery(url: string) {
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       const path = await open();
       if (path) {
         invoke("import_bookmarks", {
@@ -117,7 +117,7 @@ export function useImportBookmarksMutation() {
 export function useInsertBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
       if (bookmarkClone.tags) {
         delete bookmarkClone.tags;
@@ -136,7 +136,7 @@ export function useInsertBookmarkMutation() {
 export function useUpdateBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
       if (bookmarkClone.tags) {
         delete bookmarkClone.tags;
@@ -157,7 +157,7 @@ export function useUpdateBookmarkMutation() {
 export function useUpdateTagsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function ({
+    mutationFn: async function({
       ids,
       tagsToAdd,
       tagsToDelete,
@@ -181,7 +181,7 @@ export function useUpdateTagsMutation() {
 export function useDeleteBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (id: number) {
+    mutationFn: async function(id: number) {
       return invoke("bookmark_delete", {
         deleteId: id,
       });

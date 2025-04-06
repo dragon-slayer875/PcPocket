@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as MainIndexImport } from './routes/main/index'
+import { Route as MainBookmarksImport } from './routes/main/bookmarks'
 
 // Create/Update Routes
 
@@ -28,6 +29,12 @@ const MainIndexRoute = MainIndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const MainBookmarksRoute = MainBookmarksImport.update({
+  id: '/main/bookmarks',
+  path: '/main/bookmarks',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -37,6 +44,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/main/bookmarks': {
+      id: '/main/bookmarks'
+      path: '/main/bookmarks'
+      fullPath: '/main/bookmarks'
+      preLoaderRoute: typeof MainBookmarksImport
       parentRoute: typeof rootRoute
     }
     '/main/': {
@@ -53,36 +67,41 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/main/bookmarks': typeof MainBookmarksRoute
   '/main': typeof MainIndexRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/main/bookmarks': typeof MainBookmarksRoute
   '/main': typeof MainIndexRoute
 }
 
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/main/bookmarks': typeof MainBookmarksRoute
   '/main/': typeof MainIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/main'
+  fullPaths: '/' | '/main/bookmarks' | '/main'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/main'
-  id: '__root__' | '/' | '/main/'
+  to: '/' | '/main/bookmarks' | '/main'
+  id: '__root__' | '/' | '/main/bookmarks' | '/main/'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MainBookmarksRoute: typeof MainBookmarksRoute
   MainIndexRoute: typeof MainIndexRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MainBookmarksRoute: MainBookmarksRoute,
   MainIndexRoute: MainIndexRoute,
 }
 
@@ -97,11 +116,15 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/main/bookmarks",
         "/main/"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/main/bookmarks": {
+      "filePath": "main/bookmarks.tsx"
     },
     "/main/": {
       "filePath": "main/index.tsx"

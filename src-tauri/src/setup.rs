@@ -60,7 +60,7 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
     if !app_data_storage.db_path.is_empty() {
         app.get_webview_window("main")
             .unwrap()
-            .eval("window.location.replace('main')")
+            .eval("window.location.replace('main/bookmarks')")
             .unwrap();
     }
 

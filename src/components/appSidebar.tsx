@@ -7,12 +7,14 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { Route } from "@/routes/main/bookmarks";
+import { Link } from "@tanstack/react-router";
 
 // Menu items.
 const items = [
   {
     title: "Bookmarks",
-    url: "main",
+    url: Route.to,
     icon: Home,
   },
   {
@@ -35,10 +37,10 @@ export function AppSidebar() {
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton asChild>
-                <a href={item.url} className="p-5">
+                <Link to={item.url} className="p-5">
                   <item.icon />
                   <span>{item.title}</span>
-                </a>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

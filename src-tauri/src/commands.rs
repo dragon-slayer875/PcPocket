@@ -25,7 +25,7 @@ pub fn open_main_window(app_handle: &AppHandle) {
         let binding = app_handle.state::<Mutex<AppData>>();
         let app_data = binding.lock().unwrap();
         if !app_data.db_path.is_empty() {
-            open_url = "main";
+            open_url = "main/bookmarks";
         } else {
             open_url = "/";
         }
