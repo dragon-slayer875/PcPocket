@@ -8,24 +8,24 @@ import {
   SidebarMenuItem,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { Route } from "@/routes/main/bookmarks";
+
 import { Link } from "@tanstack/react-router";
 
 // Menu items.
 const items = [
   {
     title: "Bookmarks",
-    url: Route.to,
+    url: "/main/bookmarks",
     icon: Home,
   },
   {
     title: "Config",
-    url: "config",
+    url: "/main/config",
     icon: Settings,
   },
   {
     title: "About",
-    url: "about",
+    url: "/main/about",
     icon: Info,
   },
 ];
