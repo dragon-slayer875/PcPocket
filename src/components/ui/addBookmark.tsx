@@ -22,7 +22,7 @@ export function AddBookmarkDrawerDialog() {
   }, []);
 
   useEffect(() => {
-    window.androidBackCallback = function() {
+    window.androidBackCallback = function () {
       if (open) {
         setOpen(false);
         return false;
@@ -30,7 +30,7 @@ export function AddBookmarkDrawerDialog() {
       return true;
     };
     return () => {
-      window.androidBackCallback = function() {
+      window.androidBackCallback = function () {
         return true;
       };
     };
@@ -41,8 +41,9 @@ export function AddBookmarkDrawerDialog() {
       open={open}
       setOpen={setOpen}
       trigger={
-        <Button variant={"ghost"}>
+        <Button variant={"outline"}>
           <Plus />
+          <span>Add Bookmark</span>
         </Button>
       }
       content={

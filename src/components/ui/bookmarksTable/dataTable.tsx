@@ -6,6 +6,7 @@ import {
   RowSelectionState,
   flexRender,
   getCoreRowModel,
+  getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
@@ -32,7 +33,9 @@ import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { Import } from "lucide-react";
+import { useImportBookmarksMutation } from "@/lib/queries";
+import { DataTablePagination } from "./tablePagination";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -47,11 +50,7 @@ const MemoizedCell = memo(({ cell }: { cell: any }) => {
 export function DataTable<TData, TValue>({
   columns,
   data,
-  fetchMoreOnBottomReached,
-}: DataTableProps<TData, TValue> & {
-  fetchMoreOnBottomReached: (tableRef: HTMLDivElement | null) => void;
-}) {
-  const [windowedData, setWindowedData] = useState<TData[]>([]);
+}: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
@@ -60,6 +59,7 @@ export function DataTable<TData, TValue>({
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
+  const importBookmarksMutation = useImportBookmarksMutation();
 
   const memoizedColumns = useMemo(() => columns, [columns]);
 
@@ -72,7 +72,7 @@ export function DataTable<TData, TValue>({
   }, []);
 
   const table = useReactTable({
-    data: windowedData,
+    data,
     columns: memoizedColumns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -81,6 +81,7 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    getPaginationRowModel: getPaginationRowModel(),
     state: {
       sorting,
       columnFilters,
@@ -88,27 +89,6 @@ export function DataTable<TData, TValue>({
       rowSelection,
     },
     debugTable: true,
-  });
-
-  const { rows } = table.getRowModel();
-
-  const tableContainerRef = useRef<HTMLDivElement>(null);
-
-  const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
-    count: rows.length,
-    estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
-    getScrollElement: () => tableContainerRef.current,
-    //measure dynamic row height, except in firefox because it measures table border height incorrectly
-    measureElement:
-      typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
-        ? (element) => {
-            // Only measure if the element exists and its height might have changed
-            if (!element) return 33;
-            return element.getBoundingClientRect().height;
-          }
-        : undefined,
-    overscan: 3,
   });
 
   const handleFindShortcut = useCallback((event: KeyboardEvent) => {
@@ -179,28 +159,9 @@ export function DataTable<TData, TValue>({
     }
   }, [data.length, table.getFilteredRowModel().rows.length]);
 
-  useEffect(() => {
-    // Only load the first 1000 items initially
-    if (data.length <= 300) {
-      setWindowedData(data);
-      return;
-    }
-    setWindowedData(data.slice(0, 300));
-
-    // If you need to support filtering on all data, keep the full dataset
-    // for filtering but only render the windowed subset
-  }, [data]);
-
-  useEffect(() => {
-    fetchMoreOnBottomReached(tableContainerRef.current);
-  }, [fetchMoreOnBottomReached]);
-
-  let renderCount = 0;
-  renderCount++;
-
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between mb-2">
+    <div className="flex flex-col h-full gap-4">
+      <div className="flex justify-between">
         <Input
           placeholder="Filter links: title#tag1#tag2"
           ref={searchRef}
@@ -232,10 +193,19 @@ export function DataTable<TData, TValue>({
           className="max-w-md"
         />
         <div className="flex gap-2">
+          <Button
+            onClick={function() {
+              importBookmarksMutation.mutate();
+            }}
+            className="flex justify-between"
+          >
+            <Import />
+            <span>Import</span>
+          </Button>
           <AddBookmarkDrawerDialog />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="ml-auto">
+              <Button variant="ghost" className="ml-auto">
                 Columns
               </Button>
             </DropdownMenuTrigger>
@@ -261,27 +231,14 @@ export function DataTable<TData, TValue>({
           </DropdownMenu>
         </div>
       </div>
-      <div
-        className="rounded-md border overflow-auto relative"
-        ref={tableContainerRef}
-        onScroll={(e) => fetchMoreOnBottomReached(e.currentTarget)}
-      >
-        <Table className="grid table-fixed border-collapse">
-          <TableHeader className="sticky grid top-0 z-1">
+      <div className="rounded-md border overflow-auto relative">
+        <Table>
+          <TableHeader className="sticky top-0 z-1">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                key={headerGroup.id}
-                className="flex items-center w-full"
-              >
+              <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="flex items-center flex-1"
-                      style={{
-                        width: header.getSize(),
-                      }}
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -294,36 +251,18 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody
-            className="grid grid-cols-[repeat(auto)] relative"
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
-            }}
-          >
-            {table.getRowModel().rows?.length ? (
-              rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                const row = rows[virtualRow.index];
+          <TableBody>
+            {data || table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => {
                 return (
                   <TableRow
-                    data-index={virtualRow.index} //needed for dynamic row height measurement
-                    ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
                     key={row.id}
                     data-state={row.getIsSelected() && "selected"}
-                    className="flex absolute w-full"
-                    style={{
-                      transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
-                    }}
                   >
                     {row.getVisibleCells().map((cell) => {
                       if (cell.column.id === "select") {
                         return (
-                          <TableCell
-                            key={cell.id}
-                            className="flex items-center flex-1"
-                            style={{
-                              width: cell.column.getSize(),
-                            }}
-                          >
+                          <TableCell key={cell.id}>
                             {flexRender(
                               cell.column.columnDef.cell,
                               cell.getContext(),
@@ -333,13 +272,7 @@ export function DataTable<TData, TValue>({
                       }
                       return (
                         // Use the memoized cell component
-                        <TableCell
-                          key={cell.id}
-                          className="flex items-center flex-1"
-                          style={{
-                            width: cell.column.getSize(),
-                          }}
-                        >
+                        <TableCell key={cell.id}>
                           {<MemoizedCell cell={cell} />}
                         </TableCell>
                       );
@@ -360,6 +293,7 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
+      <DataTablePagination table={table} />
     </div>
   );
 }

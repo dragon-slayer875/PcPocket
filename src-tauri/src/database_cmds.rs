@@ -253,3 +253,27 @@ pub fn tags_update(
     send_notification(&app, "PcPocket", "Tags updated successfully")
         .expect("Failed to send notification");
 }
+
+#[tauri::command]
+pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
+    // Get database connection from app state
+    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let app_data = binding.lock().unwrap();
+    let mut conn = app_data.db_pool.get().unwrap();
+
+    // Begin transaction
+    conn.transaction(|conn| {
+        use crate::schema::bookmarks_table;
+        use diesel::prelude::*;
+
+        // Delete the bookmarks and their associated tags
+        diesel::delete(bookmarks_table::table.filter(id.eq_any(&ids))).execute(conn)?;
+
+        Ok(()) as Result<(), diesel::result::Error>
+    })
+    .unwrap();
+
+    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    send_notification(&app, "PcPocket", "Bookmarks deleted successfully")
+        .expect("Failed to send notification");
+}

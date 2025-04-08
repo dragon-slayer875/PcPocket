@@ -9,8 +9,8 @@ CREATE TABLE bookmarks_table (
 
 -- Table to store tags for bookmarks
 CREATE TABLE tags_table (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   bookmark_id INTEGER NOT NULL,
   tag_name TEXT NOT NULL,
-  PRIMARY KEY (bookmark_id, tag_name),
   FOREIGN KEY (bookmark_id) REFERENCES bookmarks_table(id) ON DELETE CASCADE
 );

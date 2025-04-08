@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { BookmarkForm } from "@/components/bookmarkForm";
 import {
   useDeleteBookmarkMutation,
+  useDeleteMultipleBookmarksMutation,
   useUpdateBookmarkMutation,
   useUpdateTagsMutation,
 } from "@/lib/queries";
@@ -35,7 +36,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         }
         onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
         aria-label="Select all"
-        className="mx-2"
+        className="mx-2 border-amber-50"
       />
     ),
     cell: ({ row }) => (
@@ -43,7 +44,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className="mx-2"
+        className="mx-2 border-amber-50"
       />
     ),
     enableSorting: false,
@@ -81,15 +82,61 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
-        <div className="text-left select-text flex items-center whitespace-pre-line line-clamp-3">
+        <div className="text-left select-text items-center overflow-ellipsis break-after-all w-[350px] whitespace-pre-line line-clamp-1">
           {title}
         </div>
       );
     },
+    maxSize: 200,
   },
   {
     id: "actions",
-    header: "Actions",
+    header: ({ table }) => {
+      const [open, setOpen] = useState(false);
+      const deleteBookmarks = useDeleteMultipleBookmarksMutation();
+
+      return (
+        <div className="flex gap-2 items-center">
+          <span>Actions</span>
+          {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && (
+            <DrawerDialog
+              open={open}
+              setOpen={setOpen}
+              trigger={
+                <Button
+                  variant={"ghost"}
+                  className="text-red-300 hover:text-red-400"
+                >
+                  <Trash />
+                </Button>
+              }
+              content={
+                <div className="flex flex-col gap-4">
+                  <Button
+                    size={"lg"}
+                    variant={"destructive"}
+                    onClick={async function () {
+                      const tableData = table.getSelectedRowModel();
+                      const ids: number[] = tableData.rows.map((row) =>
+                        row.getValue("id"),
+                      );
+                      await deleteBookmarks.mutateAsync({
+                        ids: ids,
+                      });
+                      setOpen(false);
+                    }}
+                  >
+                    Confirm
+                  </Button>
+                </div>
+              }
+              description="Remove multiple bookmark entries from the database."
+              title="Delete bookmarks"
+            />
+          )}
+        </div>
+      );
+    },
     cell: ({ row }) => {
       const [open, setOpen] = useState(false);
       const [openDelete, setOpenDelete] = useState(false);
@@ -177,7 +224,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       return (
         <Button
           variant={"link"}
-          className="inline-block overflow-hidden h-max max-w-[70px] lg:max-w-full overflow-ellipsis lg:break-all lg:whitespace-pre-wrap text-left justify-start select-text cursor-pointer"
+          className="inline-block flex-1 overflow-hidden h-max max-w-[70px] lg:max-w-full overflow-ellipsis lg:break-all lg:whitespace-pre-wrap line-clamp-1 text-left justify-start select-text cursor-pointer"
           onClick={function () {
             openUrl(link);
           }}
@@ -202,13 +249,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     },
     cell: ({ row }) => {
       const dateValue = row.getValue("created_at") as string;
-      const date = new Date(dateValue);
-      return (
-        <div>
-          {dateValue}
-          {date.toLocaleString()}
-        </div>
-      );
+      return <div>{dateValue}</div>;
     },
   },
   {
@@ -350,12 +391,17 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       );
     },
     cell: ({ row, table }) => {
-      const tags = row.getValue("tags") as string[];
+      const tags = row.getValue("tags") as {
+        id: number;
+        bookmark_id: number;
+        tag_name: string;
+      }[];
+      console.log("tags", tags);
       return (
         <div className="flex gap-2 flex-wrap">
           {tags.map((tag) => (
             <Badge
-              key={tag}
+              key={tag.tag_name.trimStart()}
               onClick={function () {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
@@ -363,9 +409,9 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   .getColumn("tags")
                   ?.setFilterValue([...filters, `#${tag}`]);
               }}
-              className="cursor-pointer"
+              className="cursor-pointer bg-amber-50"
             >
-              {tag}
+              {tag.tag_name}
             </Badge>
           ))}
         </div>

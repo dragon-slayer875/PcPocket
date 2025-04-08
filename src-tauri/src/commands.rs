@@ -1,7 +1,8 @@
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
 use diesel::associations::HasTable;
-use diesel::{ExpressionMethods, QueryDsl, RunQueryDsl};
+use diesel::BelongingToDsl;
+use diesel::{GroupedBy, QueryDsl, RunQueryDsl, SelectableHelper};
 use std::fs;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
@@ -70,42 +71,58 @@ pub fn get_bookmarks(
     all: Option<bool>,
 ) -> Vec<BookmarkWithTags> {
     use crate::schema::bookmarks_table::dsl::*;
-    use crate::schema::tags_table::dsl::*;
 
     let app_data = state.lock().unwrap();
     let mut conn = app_data.db_pool.get().unwrap();
 
-    let bookmarks = if all.unwrap_or(false) {
-        bookmarks_table::table()
-            .left_join(tags_table::table())
-            .filter(id.gt(index))
-            .order_by(id.asc())
-            .load::<(Bookmark, Option<Tag>)>(&mut conn)
-            .unwrap()
-    } else {
-        bookmarks_table::table()
-            .left_join(tags_table::table())
-            .filter(id.gt(index))
-            .filter(id.le(index + page_size.unwrap_or(10) as i32))
-            .order_by(id.asc())
-            .load::<(Bookmark, Option<Tag>)>(&mut conn)
-            .unwrap()
-    };
+    if all.unwrap_or(false) {
+        let bookmarks = bookmarks_table::table()
+            .select(Bookmark::as_select())
+            .load::<Bookmark>(&mut conn)
+            .unwrap();
 
-    let mut bookmark_map: std::collections::BTreeMap<i32, BookmarkWithTags> =
-        std::collections::BTreeMap::new();
-
-    for (bookmark, tag) in bookmarks {
-        let entry = bookmark_map.entry(bookmark.id).or_insert(BookmarkWithTags {
-            bookmark,
-            tags: vec![],
-        });
-        if let Some(tag) = tag {
-            entry.tags.push(tag.tag_name);
+        if bookmarks.is_empty() {
+            return vec![];
         }
-    }
 
-    return bookmark_map.into_iter().map(|(_, v)| v).collect();
+        let tags = Tag::belonging_to(&bookmarks)
+            .select(Tag::as_select())
+            .load(&mut conn)
+            .unwrap();
+
+        let bookmarks_with_tags = tags
+            .grouped_by(&bookmarks)
+            .into_iter()
+            .zip(bookmarks)
+            .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
+            .collect::<Vec<BookmarkWithTags>>();
+
+        return bookmarks_with_tags;
+    } else {
+        let bookmarks = bookmarks_table::table()
+            .select(Bookmark::as_select())
+            .limit(page_size.unwrap_or(10))
+            .load::<Bookmark>(&mut conn)
+            .unwrap();
+
+        if bookmarks.is_empty() {
+            return vec![];
+        }
+
+        let tags = Tag::belonging_to(&bookmarks)
+            .select(Tag::as_select())
+            .load(&mut conn)
+            .unwrap();
+
+        let bookmarks_with_tags = tags
+            .grouped_by(&bookmarks)
+            .into_iter()
+            .zip(bookmarks)
+            .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
+            .collect::<Vec<BookmarkWithTags>>();
+
+        return bookmarks_with_tags;
+    };
 }
 
 #[tauri::command]

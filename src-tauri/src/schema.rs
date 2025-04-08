@@ -11,7 +11,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    tags_table (bookmark_id, tag_name) {
+    tags_table (id) {
+        id -> Integer,
         bookmark_id -> Integer,
         tag_name -> Text,
     }
@@ -19,4 +20,7 @@ diesel::table! {
 
 diesel::joinable!(tags_table -> bookmarks_table (bookmark_id));
 
-diesel::allow_tables_to_appear_in_same_query!(bookmarks_table, tags_table,);
+diesel::allow_tables_to_appear_in_same_query!(
+    bookmarks_table,
+    tags_table,
+);

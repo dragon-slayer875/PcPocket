@@ -1,4 +1,4 @@
-use crate::models::Bookmark;
+use crate::models::{Bookmark, Tag};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -43,5 +43,5 @@ pub enum BrowserJsonBookmarkItem {
 pub struct BookmarkWithTags {
     #[serde(flatten)]
     pub bookmark: Bookmark,
-    pub tags: Vec<String>,
+    pub tags: Vec<Tag>,
 }

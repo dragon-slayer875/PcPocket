@@ -107,6 +107,7 @@ pub fn run() {
             database_cmds::bookmark_update,
             database_cmds::bookmark_delete,
             database_cmds::tags_update,
+            database_cmds::batch_delete,
         ])
         .build(tauri::generate_context!())
         .expect("error while running tauri application")

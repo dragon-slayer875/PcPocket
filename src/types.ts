@@ -46,7 +46,11 @@ export type BookmarkQueryItem = {
   link: string;
   icon_link: string | null;
   created_at: Date;
-  tags: string[];
+  tags: {
+    id: number;
+    bookmark_id: number;
+    tag_name: string;
+  }[];
 };
 
 export type BookmarkSelectItem = {
