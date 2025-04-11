@@ -34,8 +34,8 @@ import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
 import { Import } from "lucide-react";
-import { useImportBookmarksMutation } from "@/lib/queries";
 import { DataTablePagination } from "./tablePagination";
+import { ImportWizard } from "@/components/importWizard";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -52,6 +52,7 @@ export function DataTable<TData, TValue>({
   data,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [openImport, setOpenImport] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     id: false,
@@ -59,17 +60,8 @@ export function DataTable<TData, TValue>({
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
-  const importBookmarksMutation = useImportBookmarksMutation();
 
   const memoizedColumns = useMemo(() => columns, [columns]);
-
-  useEffect(() => {
-    const renderCount = 0;
-
-    return () => {
-      console.log(`DataTable rendered ${renderCount} times`);
-    };
-  }, []);
 
   const table = useReactTable({
     data,
@@ -190,18 +182,19 @@ export function DataTable<TData, TValue>({
             table.getColumn("title")?.setFilterValue(title);
             table.getColumn("tags")?.setFilterValue(tags);
           }}
-          className="max-w-md"
+          className="max-w-md mr-1"
         />
         <div className="flex gap-2">
-          <Button
-            onClick={function() {
-              importBookmarksMutation.mutate();
-            }}
-            className="flex justify-between"
-          >
-            <Import />
-            <span>Import</span>
-          </Button>
+          <ImportWizard
+            open={openImport}
+            setOpen={setOpenImport}
+            trigger={
+              <Button className="flex justify-between">
+                <Import />
+                <span>Import</span>
+              </Button>
+            }
+          />
           <AddBookmarkDrawerDialog />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -242,9 +235,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}

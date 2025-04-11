@@ -1,17 +1,17 @@
+use crate::custom_parsers::{ParserRegistry, ParserSuccess};
+use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
 use diesel::associations::HasTable;
 use diesel::BelongingToDsl;
 use diesel::{GroupedBy, QueryDsl, RunQueryDsl, SelectableHelper};
-use std::fs;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
 use tauri::{AppHandle, Manager, State};
-use tauri_plugin_notification::NotificationExt;
 
+use crate::database_cmds;
 use crate::setup::AppData;
-use crate::structs::{BookmarkWithTags, BrowserJsonBookmarkItem};
-use crate::{database_cmds, utils};
+use crate::structs::BookmarkWithTags;
 
 #[tauri::command]
 pub fn open_main_window(app_handle: &AppHandle) {
@@ -126,28 +126,17 @@ pub fn get_bookmarks(
 }
 
 #[tauri::command]
-pub fn import_bookmarks(app: AppHandle, file_path: String) {
-    let file_content = fs::read_to_string(&file_path);
-    let bookmarks_json = match file_content {
-        Ok(content) => {
-            let bookmarks: BrowserJsonBookmarkItem = serde_json::from_str(&content).unwrap();
-            bookmarks
-        }
-        Err(e) => {
-            app.notification()
-                .builder()
-                .title("PcPocket")
-                .body(format!("Error reading file: {}", e))
-                .show()
-                .unwrap();
-            return;
-        }
-    };
+pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) {
+    let binding = app.state::<Mutex<ParserRegistry>>();
+    let registry = binding.lock().unwrap();
+    let parser = registry.get(&parser_name).unwrap();
+    let parser_result = parser.parse(&file_path);
 
-    let import_result = utils::batch_browser_json_import(&bookmarks_json, &app);
+    match parser_result {
+        Ok(parsed_bookmarks) => {
+            batch_insert(&app, parsed_bookmarks.get_successful())
+                .expect("Failed to insert bookmarks into the database");
 
-    match import_result {
-        Ok(_) => {
             send_notification(&app, "PcPocket", "Bookmarks imported successfully")
                 .expect("Failed to send notification");
         }
@@ -160,4 +149,11 @@ pub fn import_bookmarks(app: AppHandle, file_path: String) {
             .expect("Failed to send notification");
         }
     }
+}
+
+#[tauri::command]
+pub fn show_supported_parsers(app: AppHandle, format: String) -> Vec<String> {
+    let binding = app.state::<Mutex<ParserRegistry>>();
+    let registry = binding.lock().unwrap();
+    registry.list_parsers(format)
 }

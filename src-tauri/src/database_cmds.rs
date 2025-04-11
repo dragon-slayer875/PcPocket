@@ -1,6 +1,7 @@
 use crate::models::{BookmarkNew, TagNew};
 use crate::schema::bookmarks_table::id;
 use crate::schema::tags_table::bookmark_id;
+use crate::structs::ParsedBookmarkWithTags;
 use crate::utils::send_notification;
 use diesel::backend::Backend;
 use diesel::prelude::*;
@@ -44,19 +45,25 @@ pub fn get_connection(pool: &DbPool) -> DbConnection {
 
 pub fn batch_insert(
     app: &AppHandle,
-    bookmarks: &mut Vec<(BookmarkNew, Vec<String>)>,
+    bookmarks: &Vec<ParsedBookmarkWithTags>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = app_data.db_pool.get().unwrap();
 
+    let bookmarks_temp: Vec<(BookmarkNew, Vec<String>)> = bookmarks
+        .iter()
+        .cloned()
+        .map(|bookmark_with_tags| (bookmark_with_tags.bookmark, bookmark_with_tags.tags))
+        .collect();
+
     // Begin transaction
     conn.transaction(|conn| {
         use crate::schema::{bookmarks_table, tags_table};
         use diesel::prelude::*;
 
-        for (bookmark, tags) in bookmarks.drain(..) {
+        for (bookmark, tags) in bookmarks_temp {
             // Insert bookmark and get ID
             let curr_bookmark_id: i32 = diesel::insert_into(bookmarks_table::table)
                 .values(&bookmark)
@@ -82,7 +89,7 @@ pub fn batch_insert(
         Ok(()) as Result<(), diesel::result::Error>
     })?;
 
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+    app.emit("bookmarks-updated", {}).unwrap();
 
     Ok(())
 }

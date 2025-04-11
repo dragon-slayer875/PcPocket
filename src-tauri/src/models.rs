@@ -12,13 +12,13 @@ pub struct Bookmark {
     pub created_at: String,
 }
 
-#[derive(Insertable, Deserialize, Debug, AsChangeset)]
+#[derive(Insertable, Serialize, Clone, Deserialize, Debug, AsChangeset)]
 #[diesel(table_name = crate::schema::bookmarks_table)]
 pub struct BookmarkNew {
     pub title: Option<String>,
     pub link: String,
     pub icon_link: Option<String>,
-    pub created_at: Option<String>,
+    pub created_at: String,
 }
 
 #[derive(

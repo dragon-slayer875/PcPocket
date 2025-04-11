@@ -91,13 +91,17 @@ export function useGetMetadataQuery(url: string) {
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
-      const path = await open();
-      if (path) {
-        invoke("import_bookmarks", {
-          filePath: path,
-        });
-      }
+    mutationFn: async function ({
+      filePath,
+      parserName,
+    }: {
+      filePath: string;
+      parserName: string;
+    }) {
+      invoke("import_bookmarks", {
+        filePath,
+        parserName,
+      });
     },
     async onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });

@@ -2,11 +2,14 @@ use database_cmds::bookmark_insert;
 use models::BookmarkNew;
 use tauri::async_runtime::spawn;
 use tauri::Manager;
+use time::OffsetDateTime;
 use url::Url;
 
 mod commands;
+mod custom_parsers;
 mod database_cmds;
 mod models;
+mod parser_errors;
 mod runtime;
 mod schema;
 mod setup;
@@ -54,7 +57,7 @@ pub fn run() {
                             title: Some(title),
                             link,
                             icon_link: Some(icon_link),
-                            created_at: None,
+                            created_at: OffsetDateTime::now_utc().to_string(),
                         };
                         bookmark_insert(app_handle, bookmark, tags);
                     }
@@ -103,6 +106,7 @@ pub fn run() {
             commands::open_db,
             commands::get_bookmarks,
             commands::import_bookmarks,
+            commands::show_supported_parsers,
             database_cmds::bookmark_insert,
             database_cmds::bookmark_update,
             database_cmds::bookmark_delete,

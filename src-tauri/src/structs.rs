@@ -1,4 +1,4 @@
-use crate::models::{Bookmark, Tag};
+use crate::models::{Bookmark, BookmarkNew, Tag};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -44,4 +44,18 @@ pub struct BookmarkWithTags {
     #[serde(flatten)]
     pub bookmark: Bookmark,
     pub tags: Vec<Tag>,
+}
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+pub struct ParsedBookmarkWithTags {
+    #[serde(flatten)]
+    pub bookmark: BookmarkNew,
+    pub tags: Vec<String>,
+}
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+pub struct ParseFailBookmark {
+    note_index: i32,
+    note_title: String,
+    error: String,
 }
