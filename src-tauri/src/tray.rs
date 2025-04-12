@@ -23,7 +23,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
-                let config_path = app.path().app_data_dir().unwrap().join("config.json");
+                let config_path = app.path().app_config_dir().unwrap().join("config.json");
                 let binding = app.app_handle().state::<Mutex<AppData>>();
                 let app_data = binding.lock().unwrap();
                 let modified_app_data = app_data.to_storage();
