@@ -82,7 +82,7 @@ impl Default for AppDataStorage {
     fn default() -> Self {
         AppDataStorage {
             db_path: "".to_string(),
-            custom_parsers: vec![].into(),
+            custom_parsers: vec![],
         }
     }
 }
