@@ -57,7 +57,7 @@ pub fn run() {
                             title: Some(title),
                             link,
                             icon_link: Some(icon_link),
-                            created_at: OffsetDateTime::now_utc().to_string(),
+                            created_at: OffsetDateTime::now_utc().unix_timestamp(),
                         };
                         bookmark_insert(app_handle, bookmark, tags);
                     }

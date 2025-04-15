@@ -4,7 +4,7 @@ CREATE TABLE bookmarks_table (
   title TEXT,
   link TEXT NOT NULL,
   icon_link TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now', 'utc'))
+  created_at BIGINT NOT NULL DEFAULT (strftime('%s','now'))
 );
 
 -- Table to store tags for bookmarks

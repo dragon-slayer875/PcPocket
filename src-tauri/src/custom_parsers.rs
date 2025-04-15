@@ -180,18 +180,14 @@ impl Parser for BrowserJsonParser {
 
         while let Some((current, current_tags)) = stack.pop() {
             match current {
-                BrowserJsonBookmarkItem::Link(link) => {
+                BrowserJsonBookmarkItem::Link(bookmark_entry) => {
                     // Create the bookmark with tags
                     let bookmark = ParsedBookmarkWithTags {
                         bookmark: BookmarkNew {
-                            title: Some(link.base.title.clone()),
-                            link: link.uri.clone(),
-                            icon_link: Some(link.icon_uri.clone().unwrap_or_default()),
-                            created_at: OffsetDateTime::from_unix_timestamp(
-                                link.base.date_added / 1000,
-                            )
-                            .unwrap_or(OffsetDateTime::now_utc())
-                            .to_string(),
+                            title: Some(bookmark_entry.base.title.clone()),
+                            link: bookmark_entry.uri.clone(),
+                            icon_link: Some(bookmark_entry.icon_uri.clone().unwrap_or_default()),
+                            created_at: bookmark_entry.base.date_added / 1000,
                         },
                         tags: current_tags.clone(),
                     };

@@ -9,7 +9,7 @@ pub struct Bookmark {
     pub title: Option<String>,
     pub link: String,
     pub icon_link: Option<String>,
-    pub created_at: String,
+    pub created_at: i64,
 }
 
 #[derive(Insertable, Serialize, Clone, Deserialize, Debug, AsChangeset)]
@@ -18,7 +18,7 @@ pub struct BookmarkNew {
     pub title: Option<String>,
     pub link: String,
     pub icon_link: Option<String>,
-    pub created_at: String,
+    pub created_at: i64,
 }
 
 #[derive(

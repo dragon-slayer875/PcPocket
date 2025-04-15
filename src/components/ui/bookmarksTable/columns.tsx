@@ -248,7 +248,9 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       );
     },
     cell: ({ row }) => {
-      const dateValue = row.getValue("created_at") as string;
+      const dateValue = new Date(
+        row.getValue("created_at"),
+      ).toLocaleDateString();
       return <div>{dateValue}</div>;
     },
   },
@@ -257,16 +259,28 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     header: ({ table }) => {
       const [open, setOpen] = useState(false);
       const updateTags = useUpdateTagsMutation();
-      const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
-      const [tagsToDelete, setTagsToDelete] = useState<Set<string>>(new Set());
+      const [selectedTags, setSelectedTags] = useState<
+        Set<{ id: number; bookmark_id: number; tag_name: string }>
+      >(new Set());
+      const [tagsToDelete, setTagsToDelete] = useState<
+        Set<{ id: number; bookmark_id: number; tag_name: string }>
+      >(new Set());
       const [tagsToAdd, setTagsToAdd] = useState<Set<string>>(new Set());
       const [tagsInputValue, setTagsInputValue] = useState("");
 
       useEffect(() => {
-        const initialSelectedTags = new Set<string>();
+        const initialSelectedTags = new Set<{
+          id: number;
+          bookmark_id: number;
+          tag_name: string;
+        }>();
         const tableData = table.getSelectedRowModel();
         tableData.rows.forEach((row) => {
-          const tags = row.getValue("tags") as string[];
+          const tags = row.getValue("tags") as {
+            id: number;
+            bookmark_id: number;
+            tag_name: string;
+          }[];
           tags.forEach((tag) => {
             initialSelectedTags.add(tag);
           });
@@ -281,7 +295,11 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         };
       }, [table.getSelectedRowModel()]);
 
-      function handleDeleteTag(tag: string) {
+      function handleDeleteTag(tag: {
+        id: number;
+        bookmark_id: number;
+        tag_name: string;
+      }) {
         if (selectedTags.has(tag)) {
           setSelectedTags((prev) => {
             prev.delete(tag);
@@ -311,17 +329,17 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
               }
               content={
                 <>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap overflow-y-scroll">
                     {Array.from(selectedTags).map((tag) => (
                       <Button
                         size={"sm"}
-                        key={tag}
+                        key={tag.tag_name}
                         className="cursor-pointer rounded-lg"
                         onClick={function () {
                           handleDeleteTag(tag);
                         }}
                       >
-                        <span>{tag}</span>
+                        <span>{tag.tag_name}</span>
                       </Button>
                     ))}
                   </div>
@@ -330,14 +348,14 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                     {Array.from(tagsToDelete).map((tag) => (
                       <Button
                         size={"sm"}
-                        key={tag}
+                        key={tag.tag_name}
                         className="cursor-pointer rounded-lg"
                         variant={"destructive"}
                         onClick={function () {
                           handleDeleteTag(tag);
                         }}
                       >
-                        <span>{tag}</span>
+                        <span>{tag.tag_name}</span>
                       </Button>
                     ))}
                   </div>
