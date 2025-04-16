@@ -231,11 +231,11 @@ export function DataTable() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="rounded-md border overflow-auto relative">
-        <Table>
+      <div className="rounded-md border overflow-auto flex flex-1 justify-between relative">
+        <Table className="relative">
           <TableHeader className="sticky top-0 z-1">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow className="bg-secondary" key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
                     <TableHead key={header.id}>
