@@ -1,12 +1,11 @@
 import {
-  ColumnDef,
   ColumnFiltersState,
+  PaginationState,
   SortingState,
   VisibilityState,
   RowSelectionState,
   flexRender,
   getCoreRowModel,
-  getPaginationRowModel,
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
@@ -36,21 +35,26 @@ import { toast } from "sonner";
 import { Import } from "lucide-react";
 import { DataTablePagination } from "./tablePagination";
 import { ImportWizard } from "@/components/importWizard";
+import { useGetBookmarksQuery } from "@/lib/queries";
+import { columns } from "./columns";
 
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-}
+// interface DataTableProps<TData, TValue> { }
 
 // Create a memoized cell component
 const MemoizedCell = memo(({ cell }: { cell: any }) => {
   return flexRender(cell.column.columnDef.cell, cell.getContext());
 });
 
-export function DataTable<TData, TValue>({
-  columns,
-  data,
-}: DataTableProps<TData, TValue>) {
+export function DataTable() {
+  const [pagination, setPagination] = useState<PaginationState>({
+    pageIndex: 0,
+    pageSize: 10,
+  });
+  const { data } = useGetBookmarksQuery(
+    pagination.pageSize,
+    pagination.pageIndex,
+  );
+  console.log(data);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [openImport, setOpenImport] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -64,7 +68,7 @@ export function DataTable<TData, TValue>({
   const memoizedColumns = useMemo(() => columns, [columns]);
 
   const table = useReactTable({
-    data,
+    data: data?.bookmarks || [],
     columns: memoizedColumns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
@@ -73,12 +77,15 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    getPaginationRowModel: getPaginationRowModel(),
+    onPaginationChange: setPagination,
+    manualPagination: true,
+    rowCount: data?.totalCount,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination,
     },
     debugTable: true,
   });
@@ -135,7 +142,7 @@ export function DataTable<TData, TValue>({
   useEffect(() => {
     // Only run this if filtering is active
     const filteredRowsLength = table.getFilteredRowModel().rows.length;
-    const dataLength = data.length;
+    const dataLength = data?.bookmarks?.length || 0;
 
     if (filteredRowsLength > 0 && filteredRowsLength < dataLength) {
       const firstRowId = table.getFilteredRowModel().rows[0].id;
@@ -149,7 +156,7 @@ export function DataTable<TData, TValue>({
     ) {
       setRowSelection({});
     }
-  }, [data.length, table.getFilteredRowModel().rows.length]);
+  }, [data?.bookmarks.length, table.getFilteredRowModel().rows.length]);
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -235,9 +242,9 @@ export function DataTable<TData, TValue>({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

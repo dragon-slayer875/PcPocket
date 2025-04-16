@@ -5,7 +5,7 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { save, open } from "@tauri-apps/plugin-dialog";
-import { BookmarkMutationItem, BookmarkQueryItem } from "@/types";
+import { BookmarkGetQueryResponse, BookmarkMutationItem } from "@/types";
 import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/main/bookmarks";
 import { getLinkPreview } from "link-preview-js";
@@ -61,21 +61,21 @@ export function useOpenDbMutation() {
 
 export function useGetBookmarksQuery(
   pageSize?: number,
-  index: number = 0,
-  all: boolean = true,
+  page: number = 1,
+  all: boolean = false,
 ) {
   return useQuery({
-    queryKey: ["bookmarks", pageSize],
-    queryFn: async function(): Promise<BookmarkQueryItem[]> {
-      const bookmarks = await invoke("get_bookmarks", {
-        index,
+    queryKey: ["bookmarks", page, pageSize],
+    queryFn: async function(): Promise<BookmarkGetQueryResponse> {
+      const response = await invoke("get_bookmarks", {
+        page,
         pageSize,
         all,
       });
-      return bookmarks as BookmarkQueryItem[];
+      return response as BookmarkGetQueryResponse;
     },
-    refetchOnWindowFocus: false,
     placeholderData: keepPreviousData,
+    staleTime: 5000,
   });
 }
 

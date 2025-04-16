@@ -64,6 +64,7 @@ export type BookmarkSelectItem = {
 
 export type BookmarkGetQueryResponse = {
   bookmarks: BookmarkQueryItem[];
-  nextStartIndex: number | null;
-  prevStartIndex: number | null;
+  totalCount: number;
+  totalPages: number;
+  page: number;
 };

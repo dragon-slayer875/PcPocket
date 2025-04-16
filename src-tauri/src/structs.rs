@@ -59,3 +59,12 @@ pub struct ParseFailBookmark {
     note_title: String,
     error: String,
 }
+
+#[derive(Serialize, Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkQueryResponse {
+    pub bookmarks: Vec<BookmarkWithTags>,
+    pub total_count: i64,
+    pub total_pages: i64,
+    pub page: i64,
+}

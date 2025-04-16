@@ -11,7 +11,7 @@ use tauri::{AppHandle, Manager, State};
 
 use crate::database_cmds;
 use crate::setup::AppData;
-use crate::structs::BookmarkWithTags;
+use crate::structs::{BookmarkQueryResponse, BookmarkWithTags};
 
 #[tauri::command]
 pub fn open_main_window(app_handle: &AppHandle) {
@@ -66,10 +66,10 @@ pub fn open_db(state: State<'_, Mutex<AppData>>, path: String) {
 #[tauri::command]
 pub fn get_bookmarks(
     state: State<'_, Mutex<AppData>>,
-    index: i32,
+    page: Option<i64>,
     page_size: Option<i64>,
     all: Option<bool>,
-) -> Vec<BookmarkWithTags> {
+) -> BookmarkQueryResponse {
     use crate::schema::bookmarks_table::dsl::*;
 
     let app_data = state.lock().unwrap();
@@ -81,9 +81,10 @@ pub fn get_bookmarks(
             .load::<Bookmark>(&mut conn)
             .unwrap();
 
-        if bookmarks.is_empty() {
-            return vec![];
-        }
+        let total = bookmarks_table::table()
+            .count()
+            .get_result::<i64>(&mut conn)
+            .unwrap();
 
         let tags = Tag::belonging_to(&bookmarks)
             .select(Tag::as_select())
@@ -97,17 +98,26 @@ pub fn get_bookmarks(
             .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
             .collect::<Vec<BookmarkWithTags>>();
 
-        return bookmarks_with_tags;
+        return BookmarkQueryResponse {
+            bookmarks: bookmarks_with_tags,
+            total_count: total,
+            total_pages: 1,
+            page: 0,
+        };
     } else {
+        let total = bookmarks_table::table()
+            .count()
+            .get_result::<i64>(&mut conn)
+            .unwrap();
+
+        let total_pages = (total as f64 / page_size.unwrap_or(10) as f64).ceil() as i64;
+
         let bookmarks = bookmarks_table::table()
             .select(Bookmark::as_select())
             .limit(page_size.unwrap_or(10))
+            .offset(page_size.unwrap_or(10) * (page.unwrap_or(0)))
             .load::<Bookmark>(&mut conn)
             .unwrap();
-
-        if bookmarks.is_empty() {
-            return vec![];
-        }
 
         let tags = Tag::belonging_to(&bookmarks)
             .select(Tag::as_select())
@@ -121,7 +131,12 @@ pub fn get_bookmarks(
             .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
             .collect::<Vec<BookmarkWithTags>>();
 
-        return bookmarks_with_tags;
+        return BookmarkQueryResponse {
+            bookmarks: bookmarks_with_tags,
+            total_count: total,
+            total_pages,
+            page: page.unwrap_or(0),
+        };
     };
 }
 
