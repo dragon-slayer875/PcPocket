@@ -17,10 +17,14 @@ import {
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;
+  setAllRows: (all: boolean) => void;
+  allRows?: boolean;
 }
 
 export function DataTablePagination<TData>({
   table,
+  setAllRows,
+  allRows = false,
 }: DataTablePaginationProps<TData>) {
   return (
     <div className="flex items-center justify-between px-2">
@@ -32,12 +36,18 @@ export function DataTablePagination<TData>({
         <div className="flex items-center space-x-2">
           <p className="text-sm font-medium">Rows per page</p>
           <Select
-            value={`${table.getState().pagination.pageSize}`}
+            value={allRows ? "all" : `${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
+              if (value === "all") {
+                setAllRows(true);
+                return;
+              }
+              localStorage.setItem("bookmarksTablePageSize", value);
+              setAllRows(false);
               table.setPageSize(Number(value));
             }}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="h-8 w-[80px]">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">
@@ -46,6 +56,9 @@ export function DataTablePagination<TData>({
                   {pageSize}
                 </SelectItem>
               ))}
+              <SelectItem key="all" value="all">
+                All
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

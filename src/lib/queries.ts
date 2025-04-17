@@ -65,7 +65,7 @@ export function useGetBookmarksQuery(
   all: boolean = false,
 ) {
   return useQuery({
-    queryKey: ["bookmarks", page, pageSize],
+    queryKey: ["bookmarks", page, pageSize, all],
     queryFn: async function(): Promise<BookmarkGetQueryResponse> {
       const response = await invoke("get_bookmarks", {
         page,

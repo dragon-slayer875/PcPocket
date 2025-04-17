@@ -28,6 +28,7 @@ import { Input } from "../input";
 export const columns: ColumnDef<BookmarkQueryItem>[] = [
   {
     id: "select",
+    size: 50,
     header: ({ table }) => (
       <Checkbox
         checked={
@@ -52,10 +53,12 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   },
   {
     accessorKey: "id",
+    size: 60,
     header: "Id",
   },
   {
     accessorKey: "icon_link",
+    size: 60,
     header: "Icon",
     cell: ({ row }) => {
       const iconLink = row.getValue("icon_link") as string;
@@ -78,16 +81,16 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   },
   {
     accessorKey: "title",
+    minSize: 350,
     header: "Title",
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (
-        <div className="text-left select-text items-center overflow-ellipsis break-after-all w-[350px] whitespace-pre-line line-clamp-1">
+        <div className="text-left select-text items-center overflow-hidden overflow-ellipsis break-after-all whitespace-nowrap">
           {title}
         </div>
       );
     },
-    maxSize: 200,
   },
   {
     id: "actions",
@@ -96,7 +99,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       const deleteBookmarks = useDeleteMultipleBookmarksMutation();
 
       return (
-        <div className="flex gap-2 justify-center items-center">
+        <div className="flex flex-1 gap-2 justify-center items-center">
           <span>Actions</span>
           {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && (
             <DrawerDialog
@@ -218,13 +221,14 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   },
   {
     accessorKey: "link",
+    minSize: 350,
     header: "Link",
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
       return (
         <Button
           variant={"link"}
-          className="inline-block flex-1 overflow-hidden h-max max-w-[350px] overflow-ellipsis  line-clamp-1 text-left justify-start select-text cursor-pointer"
+          className="inline-block flex-1 overflow-hidden h-max overflow-ellipsis text-left justify-start select-text cursor-pointer"
           onClick={function() {
             openUrl(link);
           }}
@@ -251,7 +255,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       const dateValue = new Date(
         row.getValue("created_at"),
       ).toLocaleDateString();
-      return <div>{dateValue}</div>;
+      return <div className="text-center flex-1">{dateValue}</div>;
     },
   },
   {
@@ -316,7 +320,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       }
 
       return (
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-2 items-center flex-1">
           <span>Tags</span>
           {(table.getIsSomeRowsSelected() || table.getIsAllRowsSelected()) && (
             <DrawerDialog
@@ -414,9 +418,8 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         bookmark_id: number;
         tag_name: string;
       }[];
-      console.log("tags", tags);
       return (
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-2">
           {tags.map((tag) => (
             <Badge
               key={tag.tag_name.trimStart()}

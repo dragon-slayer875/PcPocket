@@ -9,7 +9,15 @@ import {
   getFilteredRowModel,
   getSortedRowModel,
   useReactTable,
+  Table as ReactTable,
+  Row,
 } from "@tanstack/react-table";
+
+import {
+  useVirtualizer,
+  VirtualItem,
+  Virtualizer,
+} from "@tanstack/react-virtual";
 
 import {
   Table,
@@ -27,7 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useEffect, useRef, useState, memo, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback, RefObject } from "react";
 import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
@@ -37,24 +45,19 @@ import { DataTablePagination } from "./tablePagination";
 import { ImportWizard } from "@/components/importWizard";
 import { useGetBookmarksQuery } from "@/lib/queries";
 import { columns } from "./columns";
-
-// interface DataTableProps<TData, TValue> { }
-
-// Create a memoized cell component
-const MemoizedCell = memo(({ cell }: { cell: any }) => {
-  return flexRender(cell.column.columnDef.cell, cell.getContext());
-});
+import { BookmarkQueryItem } from "@/types";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
     pageIndex: 0,
-    pageSize: 10,
+    pageSize: Number(localStorage.getItem("bookmarksTablePageSize")) || 10,
   });
+  const [allBookmarks, setAllBookmarks] = useState<boolean>(false);
   const { data } = useGetBookmarksQuery(
     pagination.pageSize,
     pagination.pageIndex,
+    allBookmarks,
   );
-  console.log(data);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [openImport, setOpenImport] = useState(false);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -65,11 +68,11 @@ export function DataTable() {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
 
-  const memoizedColumns = useMemo(() => columns, [columns]);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const table = useReactTable({
     data: data?.bookmarks || [],
-    columns: memoizedColumns,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
@@ -231,14 +234,24 @@ export function DataTable() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="rounded-md border overflow-auto flex flex-1 justify-between relative">
-        <Table className="relative">
-          <TableHeader className="sticky top-0 z-1">
+      <div
+        ref={tableContainerRef}
+        className="rounded-md border overflow-auto justify-between relative flex-1"
+      >
+        <Table className="relative grid">
+          <TableHeader className="sticky grid top-0 z-1">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow className="bg-secondary" key={headerGroup.id}>
+              <TableRow
+                className="bg-secondary flex w-full"
+                key={headerGroup.id}
+              >
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead
+                      key={header.id}
+                      className="flex items-center"
+                      style={{ width: header.getSize() }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -251,49 +264,114 @@ export function DataTable() {
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody>
-            {data || table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => {
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                  >
-                    {row.getVisibleCells().map((cell) => {
-                      if (cell.column.id === "select") {
-                        return (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        );
-                      }
-                      return (
-                        // Use the memoized cell component
-                        <TableCell key={cell.id}>
-                          {<MemoizedCell cell={cell} />}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
-                  No results.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          <TableBodyVirtual
+            table={table}
+            tableContainerRef={tableContainerRef}
+          />
         </Table>
       </div>
-      <DataTablePagination table={table} />
+      <DataTablePagination
+        table={table}
+        setAllRows={setAllBookmarks}
+        allRows={allBookmarks}
+      />
     </div>
+  );
+}
+
+interface TableBodyVirtualProps {
+  table: ReactTable<BookmarkQueryItem>;
+  tableContainerRef: RefObject<HTMLDivElement | null>;
+}
+
+function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
+  const { rows } = table.getRowModel();
+
+  useEffect(() => {
+    // Force recalculation when the component mounts or when data changes
+    if (rows.length > 0) {
+      rowVirtualizer.measure();
+    }
+  }, [rows.length]);
+
+  // Important: Keep the row virtualizer in the lowest component possible to avoid unnecessary re-renders.
+  const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+    count: rows.length,
+    estimateSize: () => 33, //estimate row height for accurate scrollbar dragging
+    getScrollElement: () => tableContainerRef.current,
+    //measure dynamic row height, except in firefox because it measures table border height incorrectly
+    measureElement:
+      typeof window !== "undefined" &&
+        navigator.userAgent.indexOf("Firefox") === -1
+        ? (element) => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 5,
+    scrollToFn: (offset, _canSmooth, instance) => {
+      const scrollElement = instance.scrollElement;
+      if (scrollElement) {
+        scrollElement.scrollTop = offset;
+      }
+    },
+    // This enables the virtualizer to recalculate when needed
+    initialOffset: 0,
+  });
+
+  return (
+    <TableBody
+      className="grid relative"
+      style={{
+        height: `${rowVirtualizer.getTotalSize()}px`, //tells scrollbar how big the table is
+      }}
+    >
+      {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+        const row = rows[virtualRow.index] as Row<BookmarkQueryItem>;
+        return (
+          <TableBodyVirtualRow
+            key={row.id}
+            row={row}
+            virtualRow={virtualRow}
+            rowVirtualizer={rowVirtualizer}
+          />
+        );
+      })}
+    </TableBody>
+  );
+}
+
+interface TableBodyVirtualRowProps {
+  row: Row<BookmarkQueryItem>;
+  virtualRow: VirtualItem;
+  rowVirtualizer: Virtualizer<HTMLDivElement, HTMLTableRowElement>;
+}
+
+function TableBodyVirtualRow({
+  row,
+  virtualRow,
+  rowVirtualizer,
+}: TableBodyVirtualRowProps) {
+  return (
+    <TableRow
+      data-index={virtualRow.index} //needed for dynamic row height measurement
+      ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
+      key={row.id}
+      className="flex absolute w-full"
+      style={{
+        transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+      }}
+    >
+      {row.getVisibleCells().map((cell) => {
+        return (
+          <TableCell
+            key={cell.id}
+            className="flex items-center"
+            style={{
+              width: cell.column.getSize(),
+            }}
+          >
+            {flexRender(cell.column.columnDef.cell, cell.getContext())}
+          </TableCell>
+        );
+      })}
+    </TableRow>
   );
 }
