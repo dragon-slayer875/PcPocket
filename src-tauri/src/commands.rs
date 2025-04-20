@@ -1,4 +1,4 @@
-use crate::custom_parsers::ParserRegistry;
+use crate::custom_parsers::{ParserRegistry, PythonParser};
 use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
@@ -168,7 +168,56 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
 
 #[tauri::command]
 pub fn list_all_custom_parsers(app: AppHandle) -> Vec<ParserConfig> {
-    let binding = app.state::<Mutex<AppData>>();
-    let app_data = binding.lock().unwrap();
-    app_data.custom_parsers.iter().cloned().collect()
+    let binding = app.state::<Mutex<ParserRegistry>>();
+    let registry = binding.lock().unwrap();
+    registry
+        .parsers
+        .values()
+        .map(|parser| parser.info())
+        .collect()
+}
+
+#[tauri::command]
+pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
+    let binding = app.state::<Mutex<ParserRegistry>>();
+    let mut registry = binding.lock().unwrap();
+    match parser_config.r#type.as_str() {
+        "python" => match PythonParser::new(
+            &parser_config.name,
+            &parser_config.r#type,
+            &parser_config.path,
+            &parser_config.supported_formats,
+        ) {
+            Ok(parser) => {
+                println!("Loaded Python parser: {}", parser_config.name);
+                send_notification(
+                    &app,
+                    "PcPocket",
+                    &format!("Custom parser '{}' added successfully", parser_config.name),
+                )
+                .expect("Failed to send notification");
+                registry
+                    .register(parser.name.clone(), Box::new(parser))
+                    .unwrap();
+            }
+            Err(e) => {
+                eprintln!(
+                    "Failed to load Python parser from {}: {}",
+                    parser_config.path, e
+                );
+                send_notification(
+                    &app,
+                    "Parser Error",
+                    &format!(
+                        "Failed to load Python parser from {}: {}",
+                        parser_config.path, e
+                    ),
+                )
+                .unwrap_or_default();
+            }
+        },
+        _ => {
+            eprintln!("Unknown parser type: {}", parser_config.r#type);
+        }
+    }
 }

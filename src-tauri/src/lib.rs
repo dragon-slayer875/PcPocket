@@ -107,6 +107,7 @@ pub fn run() {
             commands::get_bookmarks,
             commands::import_bookmarks,
             commands::list_all_custom_parsers,
+            commands::add_custom_parser,
             database_cmds::bookmark_insert,
             database_cmds::bookmark_update,
             database_cmds::bookmark_delete,

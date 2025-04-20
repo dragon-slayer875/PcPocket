@@ -1,4 +1,7 @@
-use crate::{models::BookmarkNew, parser_errors::ParserError, structs::BrowserJsonBookmarkItem};
+use crate::{
+    models::BookmarkNew, parser_errors::ParserError, setup::ParserConfig,
+    structs::BrowserJsonBookmarkItem,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -67,18 +70,21 @@ pub trait Parser: Send + Sync {
     fn name(&self) -> &str;
     fn parse(&self, input_path: &str) -> Result<ParserSuccess, ParserError>;
     fn supported_formats(&self) -> Vec<&str>;
+    fn info(&self) -> ParserConfig;
 }
 
 pub struct PythonParser {
-    parser_name: String,
-    parser_path: String,
-    formats: Vec<String>,
+    pub name: String,
+    r#type: String,
+    path: String,
+    supported_formats: Vec<String>,
 }
 
 impl PythonParser {
     pub fn new(
-        path: &str,
         name: &str,
+        r#type: &str,
+        path: &str,
         supported_formats: &Vec<String>,
     ) -> Result<Self, ParserError> {
         // Validate that the script exists
@@ -90,26 +96,27 @@ impl PythonParser {
         }
 
         Ok(Self {
-            parser_name: name.to_string(),
-            parser_path: path.to_string(),
-            formats: supported_formats.to_vec(),
+            name: name.to_string(),
+            r#type: r#type.to_string(),
+            path: path.to_string(),
+            supported_formats: supported_formats.to_vec(),
         })
     }
 }
 
 impl Parser for PythonParser {
     fn name(&self) -> &str {
-        &self.parser_name
+        &self.name
     }
 
     fn supported_formats(&self) -> Vec<&str> {
-        self.formats.iter().map(|s| s.as_str()).collect()
+        self.supported_formats.iter().map(|s| s.as_str()).collect()
     }
 
     fn parse(&self, input_path: &str) -> Result<ParserSuccess, ParserError> {
         // Run the Python script as a subprocess
         let output = Command::new("python")
-            .arg(&self.parser_path)
+            .arg(&self.path)
             .arg(input_path)
             .output()
             .map_err(|e| ParserError::PythonError(format!("Failed to run Python script: {}", e)))?;
@@ -130,17 +137,32 @@ impl Parser for PythonParser {
 
         Ok(parse_result)
     }
+
+    fn info(&self) -> ParserConfig {
+        ParserConfig {
+            name: self.name.to_string(),
+            r#type: self.r#type.to_string(),
+            path: self.path.to_string(),
+            supported_formats: self.supported_formats.clone(),
+        }
+    }
 }
 
 // JSON Parser implementation
 pub struct BrowserJsonParser {
     name: String,
+    r#type: String,
+    path: String,
+    supported_formats: Vec<String>,
 }
 
 impl BrowserJsonParser {
     pub fn new() -> Self {
         BrowserJsonParser {
             name: "Default JSON".to_string(),
+            r#type: "default".to_string(),
+            path: "In app".to_string(),
+            supported_formats: vec!["json".to_string()],
         }
     }
 }
@@ -214,5 +236,14 @@ impl Parser for BrowserJsonParser {
 
     fn supported_formats(&self) -> Vec<&str> {
         vec!["json"]
+    }
+
+    fn info(&self) -> ParserConfig {
+        ParserConfig {
+            name: self.name.to_string(),
+            r#type: self.r#type.to_string(),
+            path: self.path.to_string(),
+            supported_formats: self.supported_formats.clone(),
+        }
     }
 }

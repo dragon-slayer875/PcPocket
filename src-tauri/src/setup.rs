@@ -175,6 +175,7 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
             "python" => match PythonParser::new(
                 &parser_info.path,
                 &parser_info.name,
+                &parser_info.r#type,
                 &parser_info.supported_formats,
             ) {
                 Ok(parser) => {
