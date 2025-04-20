@@ -14,6 +14,7 @@ use crate::utils::send_notification;
 use crate::{database_cmds::DbPool, tray};
 
 #[derive(Serialize, Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ParserConfig {
     pub name: String,
     pub r#type: String,

@@ -1,37 +1,50 @@
-import { Moon, Sun } from "lucide-react";
+import { useTheme } from "./themeProvider";
+import { Monitor, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "@/components/themeProvider";
+import { cn } from "@/lib/utils";
 
-export function ModeToggle() {
-  const { setTheme } = useTheme();
+export function ThemeSelector() {
+  const { mode, setMode } = useTheme();
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          Light
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          Dark
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("system")}>
-          System
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="inline-flex items-center rounded-md border bg-background p-1 shadow-sm">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setMode("light")}
+        className={cn(
+          "gap-1 rounded px-3",
+          mode === "light" && "bg-secondary text-secondary-foreground",
+        )}
+      >
+        <Sun className="h-4 w-4" />
+        <span>Light</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setMode("dark")}
+        className={cn(
+          "gap-1 rounded px-3",
+          mode === "dark" && "bg-secondary text-secondary-foreground",
+        )}
+      >
+        <Moon className="h-4 w-4" />
+        <span>Dark</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setMode("system")}
+        className={cn(
+          "gap-1 rounded px-3",
+          mode === "system" && "bg-secondary text-secondary-foreground",
+        )}
+      >
+        <Monitor className="h-4 w-4" />
+        <span>System</span>
+      </Button>
+    </div>
   );
 }

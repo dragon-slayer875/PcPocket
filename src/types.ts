@@ -68,3 +68,10 @@ export type BookmarkGetQueryResponse = {
   totalPages: number;
   page: number;
 };
+
+export type ParserConfigType = {
+  name: string;
+  supportedFormats: string[];
+  type: string;
+  path: string;
+};

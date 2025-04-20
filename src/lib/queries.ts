@@ -204,3 +204,18 @@ export function useDeleteMultipleBookmarksMutation() {
     },
   });
 }
+
+export function useAddCustomParserMutation() {
+  // const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async function(parser: {
+      name: string;
+      type: "python" | "lua";
+      path: string;
+      supportedFormats: string[];
+    }) {
+      console.log("Adding custom parser:", parser);
+    },
+    async onSuccess() { },
+  });
+}

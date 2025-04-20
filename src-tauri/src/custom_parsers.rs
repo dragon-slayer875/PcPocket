@@ -4,12 +4,11 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use time::OffsetDateTime;
 
 use crate::structs::{ParseFailBookmark, ParsedBookmarkWithTags};
 
 pub struct ParserRegistry {
-    parsers: HashMap<String, Box<dyn Parser>>,
+    pub parsers: HashMap<String, Box<dyn Parser>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -47,7 +46,7 @@ impl ParserRegistry {
         self.parsers.get(name).map(|p| p.as_ref())
     }
 
-    pub fn list_parsers(&self, required_format: String) -> Vec<String> {
+    pub fn list_parsers_for_format(&self, required_format: String) -> Vec<String> {
         self.parsers
             .iter()
             .filter_map(|(name, parser)| {

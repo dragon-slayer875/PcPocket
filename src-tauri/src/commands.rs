@@ -1,4 +1,4 @@
-use crate::custom_parsers::{ParserRegistry, ParserSuccess};
+use crate::custom_parsers::ParserRegistry;
 use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
@@ -10,7 +10,7 @@ use tauri::WebviewUrl;
 use tauri::{AppHandle, Manager, State};
 
 use crate::database_cmds;
-use crate::setup::AppData;
+use crate::setup::{AppData, ParserConfig};
 use crate::structs::{BookmarkQueryResponse, BookmarkWithTags};
 
 #[tauri::command]
@@ -167,8 +167,8 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
 }
 
 #[tauri::command]
-pub fn show_supported_parsers(app: AppHandle, format: String) -> Vec<String> {
-    let binding = app.state::<Mutex<ParserRegistry>>();
-    let registry = binding.lock().unwrap();
-    registry.list_parsers(format)
+pub fn list_all_custom_parsers(app: AppHandle) -> Vec<ParserConfig> {
+    let binding = app.state::<Mutex<AppData>>();
+    let app_data = binding.lock().unwrap();
+    app_data.custom_parsers.iter().cloned().collect()
 }

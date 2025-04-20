@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as MainImport } from './routes/main'
 import { Route as IndexImport } from './routes/index'
 import { Route as MainIndexImport } from './routes/main/index'
+import { Route as MainConfigImport } from './routes/main/config'
 import { Route as MainBookmarksImport } from './routes/main/bookmarks'
 import { Route as MainAboutImport } from './routes/main/about'
 
@@ -34,6 +35,12 @@ const IndexRoute = IndexImport.update({
 const MainIndexRoute = MainIndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => MainRoute,
+} as any)
+
+const MainConfigRoute = MainConfigImport.update({
+  id: '/config',
+  path: '/config',
   getParentRoute: () => MainRoute,
 } as any)
 
@@ -81,6 +88,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MainBookmarksImport
       parentRoute: typeof MainImport
     }
+    '/main/config': {
+      id: '/main/config'
+      path: '/config'
+      fullPath: '/main/config'
+      preLoaderRoute: typeof MainConfigImport
+      parentRoute: typeof MainImport
+    }
     '/main/': {
       id: '/main/'
       path: '/'
@@ -96,12 +110,14 @@ declare module '@tanstack/react-router' {
 interface MainRouteChildren {
   MainAboutRoute: typeof MainAboutRoute
   MainBookmarksRoute: typeof MainBookmarksRoute
+  MainConfigRoute: typeof MainConfigRoute
   MainIndexRoute: typeof MainIndexRoute
 }
 
 const MainRouteChildren: MainRouteChildren = {
   MainAboutRoute: MainAboutRoute,
   MainBookmarksRoute: MainBookmarksRoute,
+  MainConfigRoute: MainConfigRoute,
   MainIndexRoute: MainIndexRoute,
 }
 
@@ -112,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/main': typeof MainRouteWithChildren
   '/main/about': typeof MainAboutRoute
   '/main/bookmarks': typeof MainBookmarksRoute
+  '/main/config': typeof MainConfigRoute
   '/main/': typeof MainIndexRoute
 }
 
@@ -119,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/main/about': typeof MainAboutRoute
   '/main/bookmarks': typeof MainBookmarksRoute
+  '/main/config': typeof MainConfigRoute
   '/main': typeof MainIndexRoute
 }
 
@@ -128,15 +146,29 @@ export interface FileRoutesById {
   '/main': typeof MainRouteWithChildren
   '/main/about': typeof MainAboutRoute
   '/main/bookmarks': typeof MainBookmarksRoute
+  '/main/config': typeof MainConfigRoute
   '/main/': typeof MainIndexRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/main' | '/main/about' | '/main/bookmarks' | '/main/'
+  fullPaths:
+    | '/'
+    | '/main'
+    | '/main/about'
+    | '/main/bookmarks'
+    | '/main/config'
+    | '/main/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/main/about' | '/main/bookmarks' | '/main'
-  id: '__root__' | '/' | '/main' | '/main/about' | '/main/bookmarks' | '/main/'
+  to: '/' | '/main/about' | '/main/bookmarks' | '/main/config' | '/main'
+  id:
+    | '__root__'
+    | '/'
+    | '/main'
+    | '/main/about'
+    | '/main/bookmarks'
+    | '/main/config'
+    | '/main/'
   fileRoutesById: FileRoutesById
 }
 
@@ -172,6 +204,7 @@ export const routeTree = rootRoute
       "children": [
         "/main/about",
         "/main/bookmarks",
+        "/main/config",
         "/main/"
       ]
     },
@@ -181,6 +214,10 @@ export const routeTree = rootRoute
     },
     "/main/bookmarks": {
       "filePath": "main/bookmarks.tsx",
+      "parent": "/main"
+    },
+    "/main/config": {
+      "filePath": "main/config.tsx",
       "parent": "/main"
     },
     "/main/": {
