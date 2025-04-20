@@ -18,10 +18,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Folder } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
 
 const formSchema = z.object({
   name: z.string(),
-  type: z.enum(["python", "lua"]),
+  type: z.enum(["python"]),
   path: z.string(),
   supportedFormats: z.array(z.string()),
 });
@@ -34,7 +36,7 @@ export function ParserForm({
   setOpen: (open: boolean) => void;
   data?: {
     name: string;
-    type: "python" | "lua";
+    type: "python";
     path: string;
     supportedFormats: string[];
   };
@@ -95,7 +97,6 @@ export function ParserForm({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="python">Python</SelectItem>
-                      <SelectItem value="lua">Lua</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -109,7 +110,22 @@ export function ParserForm({
               <FormItem>
                 <FormLabel className="text-[1rem]">Path</FormLabel>
                 <FormControl>
-                  <Input required placeholder="/path/to/parser" {...field} />
+                  <div className="flex items-center">
+                    <Input required placeholder="/path/to/parser" {...field} />
+                    <Button
+                      variant="outline"
+                      className="ml-2"
+                      onClick={async function () {
+                        const path = await open();
+                        if (path && typeof path === "string") {
+                          field.onChange(path);
+                        }
+                      }}
+                    >
+                      <Folder className="mr-1 h-4 w-4" />
+                      <span>Browse</span>
+                    </Button>
+                  </div>
                 </FormControl>
               </FormItem>
             )}

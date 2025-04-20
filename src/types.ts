@@ -71,7 +71,7 @@ export type BookmarkGetQueryResponse = {
 
 export type ParserConfigType = {
   name: string;
-  supportedFormats: string[];
   type: string;
   path: string;
+  supportedFormats: string[];
 };
