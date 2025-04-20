@@ -43,7 +43,7 @@ pub enum BrowserJsonBookmarkItem {
 pub struct BookmarkWithTags {
     #[serde(flatten)]
     pub bookmark: Bookmark,
-    pub tags: Vec<Tag>,
+    pub tags: Vec<String>,
 }
 
 #[derive(Serialize, Debug, Clone, Deserialize)]

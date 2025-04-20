@@ -163,16 +163,12 @@ export function useUpdateTagsMutation() {
     }: {
       ids: number[];
       tagsToAdd: string[];
-      tagsToDelete: {
-        id: number;
-        tag_name: string;
-        bookmark_id: number;
-      }[];
+      tagsToDelete: string[];
     }) {
       return invoke("tags_update", {
         ids,
         tagsToAdd,
-        tagsToDelete: tagsToDelete.map((tag) => tag.tag_name),
+        tagsToDelete,
       });
     },
     onSuccess() {

@@ -95,7 +95,10 @@ pub fn get_bookmarks(
             .grouped_by(&bookmarks)
             .into_iter()
             .zip(bookmarks)
-            .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
+            .map(|(tags, bookmark)| BookmarkWithTags {
+                bookmark,
+                tags: tags.iter().map(|tag| tag.tag_name.clone()).collect(),
+            })
             .collect::<Vec<BookmarkWithTags>>();
 
         return BookmarkQueryResponse {
@@ -128,7 +131,10 @@ pub fn get_bookmarks(
             .grouped_by(&bookmarks)
             .into_iter()
             .zip(bookmarks)
-            .map(|(tags, bookmark)| BookmarkWithTags { bookmark, tags })
+            .map(|(tags, bookmark)| BookmarkWithTags {
+                bookmark,
+                tags: tags.iter().map(|tag| tag.tag_name.clone()).collect(),
+            })
             .collect::<Vec<BookmarkWithTags>>();
 
         return BookmarkQueryResponse {
