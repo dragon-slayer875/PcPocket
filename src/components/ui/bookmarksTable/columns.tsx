@@ -45,7 +45,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         checked={row.getIsSelected()}
         onCheckedChange={(value) => row.toggleSelected(!!value)}
         aria-label="Select row"
-        className="mx-2 border-amber-50"
+        className="mx-2 border-foreground"
       />
     ),
     enableSorting: false,
@@ -191,7 +191,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
             trigger={
               <Button
                 variant={"ghost"}
-                className="text-red-300 hover:text-red-400"
+                className="text-destructive hover:text-destructive"
               >
                 <Trash />
               </Button>
@@ -430,7 +430,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   .getColumn("tags")
                   ?.setFilterValue([...filters, `#${tag}`]);
               }}
-              className="cursor-pointer bg-amber-50"
+              className="cursor-pointer"
             >
               {tag.tag_name}
             </Badge>
