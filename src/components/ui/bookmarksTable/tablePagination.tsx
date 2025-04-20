@@ -39,9 +39,12 @@ export function DataTablePagination<TData>({
             value={allRows ? "all" : `${table.getState().pagination.pageSize}`}
             onValueChange={(value) => {
               if (value === "all") {
+                localStorage.setItem("bookmarksTableAllRows", "true");
+                table.setPageIndex(0);
                 setAllRows(true);
                 return;
               }
+              localStorage.setItem("bookmarksTableAllRows", "");
               localStorage.setItem("bookmarksTablePageSize", value);
               setAllRows(false);
               table.setPageSize(Number(value));

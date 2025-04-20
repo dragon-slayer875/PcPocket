@@ -52,7 +52,9 @@ export function DataTable() {
     pageIndex: 0,
     pageSize: Number(localStorage.getItem("bookmarksTablePageSize")) || 10,
   });
-  const [allBookmarks, setAllBookmarks] = useState<boolean>(false);
+  const [allBookmarks, setAllBookmarks] = useState<boolean>(
+    Boolean(localStorage.getItem("bookmarksTableAllRows")) || false,
+  );
   const { data } = useGetBookmarksQuery(
     pagination.pageSize,
     pagination.pageIndex,
@@ -83,6 +85,7 @@ export function DataTable() {
     onPaginationChange: setPagination,
     manualPagination: true,
     rowCount: data?.totalCount,
+    pageCount: data?.totalPages,
     state: {
       sorting,
       columnFilters,
@@ -255,9 +258,9 @@ export function DataTable() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -302,7 +305,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-        navigator.userAgent.indexOf("Firefox") === -1
+      navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
