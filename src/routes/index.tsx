@@ -3,7 +3,7 @@ import { useCreateDbMutation, useOpenDbMutation } from "@/lib/queries";
 import { SiGithub } from "@icons-pack/react-simple-icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { FolderOpen, PlusCircle } from "lucide-react";
+import { FilePlus2, FolderOpen } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -27,7 +27,7 @@ function Index() {
           className="flex items-center justify-between"
         >
           <span>Create Database</span>
-          <PlusCircle />
+          <FilePlus2 />
         </Button>
         <Button
           onClick={function () {
