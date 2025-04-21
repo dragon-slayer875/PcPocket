@@ -12,7 +12,7 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
       key={bookmark.id}
     >
       <div
-        onClick={async function() {
+        onClick={async function () {
           await openUrl(bookmark.link);
         }}
         className="cursor-pointer flex-1 flex gap-4 flex-col hover:bg-accent active:bg-accent rounded-md p-4"
@@ -42,8 +42,8 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
         <div className="flex flex-wrap gap-2">
           {bookmark.tags.map((tag) => {
             return (
-              <Badge className="bg-amber-50" key={tag.tag_name.trimStart()}>
-                {tag.tag_name}
+              <Badge className="bg-amber-50" key={tag}>
+                {tag}
               </Badge>
             );
           })}
@@ -52,7 +52,7 @@ export function MainListItem({ bookmark }: { bookmark: BookmarkQueryItem }) {
       <Button
         className="self-center h-full"
         variant={"ghost"}
-        onClick={function() {
+        onClick={function () {
           console.log("Edit");
         }}
       >

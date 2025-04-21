@@ -14,6 +14,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Route } from "@/routes/main/bookmarks";
 import { getLinkPreview } from "link-preview-js";
 import { invoke } from "@tauri-apps/api/core";
+import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 
 export function useGetDbPathQuery() {
   return useQuery({
@@ -67,14 +68,18 @@ export function useGetBookmarksQuery(
   pageSize?: number,
   page: number = 1,
   all: boolean = false,
+  filters: ColumnFiltersState = [],
+  sort: SortingState = [],
 ) {
   return useQuery({
-    queryKey: ["bookmarks", page, pageSize, all],
+    queryKey: ["bookmarks", page, pageSize, all, filters, sort],
     queryFn: async function (): Promise<BookmarkGetQueryResponse> {
       const response = await invoke("get_bookmarks", {
         page,
         pageSize,
         all,
+        filters,
+        sort,
       });
       return response as BookmarkGetQueryResponse;
     },
@@ -89,6 +94,17 @@ export function useGetMetadataQuery(url: string) {
     queryFn: async function () {
       return getLinkPreview(url);
     },
+  });
+}
+
+export function useGetCustomParsersQuery() {
+  return useQuery({
+    queryKey: ["customParsers"],
+    queryFn: async function (): Promise<ParserConfigType[]> {
+      return invoke("list_all_custom_parsers");
+    },
+    placeholderData: keepPreviousData,
+    staleTime: 5000,
   });
 }
 
@@ -221,16 +237,5 @@ export function useAddCustomParserMutation() {
     async onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["customParsers"] });
     },
-  });
-}
-
-export function useGetCustomParsersQuery() {
-  return useQuery({
-    queryKey: ["customParsers"],
-    queryFn: async function (): Promise<ParserConfigType[]> {
-      return invoke("list_all_custom_parsers");
-    },
-    placeholderData: keepPreviousData,
-    staleTime: 5000,
   });
 }

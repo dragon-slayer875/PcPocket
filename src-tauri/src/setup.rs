@@ -172,12 +172,7 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
 
     for parser_info in &app_data_storage.custom_parsers {
         match parser_info.r#type.as_str() {
-            "python" => match PythonParser::new(
-                &parser_info.path,
-                &parser_info.name,
-                &parser_info.r#type,
-                &parser_info.supported_formats,
-            ) {
+            "python" => match PythonParser::new(parser_info) {
                 Ok(parser) => {
                     println!("Loaded Python parser: {}", parser_info.name);
                     registry

@@ -76,7 +76,17 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   {
     accessorKey: "title",
     minSize: 350,
-    header: "Title",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Title
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
     cell: ({ row }) => {
       const title = row.getValue("title") as string;
       return (

@@ -3,8 +3,10 @@ use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
 use diesel::associations::HasTable;
-use diesel::BelongingToDsl;
+use diesel::dsl::count;
+use diesel::{BelongingToDsl, ExpressionMethods, TextExpressionMethods};
 use diesel::{GroupedBy, QueryDsl, RunQueryDsl, SelectableHelper};
+use serde::Deserialize;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
 use tauri::{AppHandle, Manager, State};
@@ -12,6 +14,25 @@ use tauri::{AppHandle, Manager, State};
 use crate::database_cmds;
 use crate::setup::{AppData, ParserConfig};
 use crate::structs::{BookmarkQueryResponse, BookmarkWithTags};
+
+#[derive(Debug, Deserialize)]
+#[serde(untagged)]
+pub enum FilterValue {
+    Text(String),
+    Tags(Vec<String>),
+}
+
+#[derive(Debug, Deserialize)]
+pub struct FilterItem {
+    id: String,
+    value: FilterValue,
+}
+
+#[derive(Deserialize)]
+pub struct SortItem {
+    id: String,
+    desc: bool,
+}
 
 #[tauri::command]
 pub fn open_main_window(app_handle: &AppHandle) {
@@ -69,22 +90,129 @@ pub fn get_bookmarks(
     page: Option<i64>,
     page_size: Option<i64>,
     all: Option<bool>,
+    filters: Option<Vec<FilterItem>>,
+    sort: Option<Vec<SortItem>>,
 ) -> BookmarkQueryResponse {
     use crate::schema::bookmarks_table::dsl::*;
 
     let app_data = state.lock().unwrap();
     let mut conn = app_data.db_pool.get().unwrap();
 
-    if all.unwrap_or(false) {
-        let bookmarks = bookmarks_table::table()
-            .select(Bookmark::as_select())
-            .load::<Bookmark>(&mut conn)
+    let mut query = bookmarks_table::table().into_boxed();
+
+    let mut count_query = bookmarks_table::table().into_boxed();
+
+    if let Some(filter_items) = &filters {
+        let mut tag_filters: Vec<String> = Vec::new();
+
+        for filter in filter_items {
+            // Apply each filter based on column name
+            match filter.id.as_str() {
+                "title" => {
+                    if let FilterValue::Text(text_value) = &filter.value {
+                        query = query.filter(title.like(format!("%{}%", text_value)));
+                        count_query = count_query.filter(title.like(format!("%{}%", text_value)));
+                    }
+                }
+                "link" => {
+                    if let FilterValue::Text(text_value) = &filter.value {
+                        query = query.filter(link.like(format!("%{}%", text_value)));
+                        count_query = count_query.filter(link.like(format!("%{}%", text_value)));
+                    }
+                }
+                "created_at" => {
+                    if let FilterValue::Text(text_value) = &filter.value {
+                        query = query.filter(created_at.eq(text_value.parse::<i64>().unwrap()));
+                        count_query =
+                            count_query.filter(created_at.eq(text_value.parse::<i64>().unwrap()));
+                    }
+                }
+                "tags" => {
+                    if let FilterValue::Tags(tag_values) = &filter.value {
+                        tag_filters = tag_values.clone();
+                    }
+                }
+                // Add more fields as needed
+                _ => {
+                    // Ignore unknown fields
+                }
+            }
+        }
+    }
+
+    if let Some(sort_items) = &sort {
+        for sort_item in sort_items {
+            match sort_item.id.as_str() {
+                "title" => {
+                    if sort_item.desc {
+                        query = query.order(title.desc());
+                    } else {
+                        query = query.order(title.asc());
+                    }
+                }
+                "link" => {
+                    if sort_item.desc {
+                        query = query.order(link.desc());
+                    } else {
+                        query = query.order(link.asc());
+                    }
+                }
+                "created_at" => {
+                    if sort_item.desc {
+                        query = query.order(created_at.desc());
+                    } else {
+                        query = query.order(created_at.asc());
+                    }
+                }
+                // Add other sortable columns
+                _ => {
+                    // Ignore unknown fields
+                }
+            }
+        }
+    }
+
+    let total = count_query
+        .select(count(id))
+        .first::<i64>(&mut conn)
+        .unwrap();
+
+    let mut bookmarks_query = query.select(Bookmark::as_select());
+
+    if !all.unwrap_or(false) {
+        let page_size_val = page_size.unwrap_or(10);
+        let page_val = page.unwrap_or(0);
+        let total_pages = (total as f64 / page_size_val as f64).ceil() as i64;
+
+        bookmarks_query = bookmarks_query
+            .limit(page_size_val)
+            .offset(page_size_val * page_val);
+
+        let bookmarks = bookmarks_query.load::<Bookmark>(&mut conn).unwrap();
+
+        let tags = Tag::belonging_to(&bookmarks)
+            .select(Tag::as_select())
+            .load(&mut conn)
             .unwrap();
 
-        let total = bookmarks_table::table()
-            .count()
-            .get_result::<i64>(&mut conn)
-            .unwrap();
+        let bookmarks_with_tags = tags
+            .grouped_by(&bookmarks)
+            .into_iter()
+            .zip(bookmarks)
+            .map(|(tags, bookmark)| BookmarkWithTags {
+                bookmark,
+                tags: tags.iter().map(|tag| tag.tag_name.clone()).collect(),
+            })
+            .collect::<Vec<BookmarkWithTags>>();
+
+        return BookmarkQueryResponse {
+            bookmarks: bookmarks_with_tags,
+            total_count: total,
+            total_pages,
+            page: page_val,
+        };
+    } else {
+        let bookmarks = bookmarks_query.load::<Bookmark>(&mut conn).unwrap();
 
         let tags = Tag::belonging_to(&bookmarks)
             .select(Tag::as_select())
@@ -106,42 +234,6 @@ pub fn get_bookmarks(
             total_count: total,
             total_pages: 1,
             page: 0,
-        };
-    } else {
-        let total = bookmarks_table::table()
-            .count()
-            .get_result::<i64>(&mut conn)
-            .unwrap();
-
-        let total_pages = (total as f64 / page_size.unwrap_or(10) as f64).ceil() as i64;
-
-        let bookmarks = bookmarks_table::table()
-            .select(Bookmark::as_select())
-            .limit(page_size.unwrap_or(10))
-            .offset(page_size.unwrap_or(10) * (page.unwrap_or(0)))
-            .load::<Bookmark>(&mut conn)
-            .unwrap();
-
-        let tags = Tag::belonging_to(&bookmarks)
-            .select(Tag::as_select())
-            .load(&mut conn)
-            .unwrap();
-
-        let bookmarks_with_tags = tags
-            .grouped_by(&bookmarks)
-            .into_iter()
-            .zip(bookmarks)
-            .map(|(tags, bookmark)| BookmarkWithTags {
-                bookmark,
-                tags: tags.iter().map(|tag| tag.tag_name.clone()).collect(),
-            })
-            .collect::<Vec<BookmarkWithTags>>();
-
-        return BookmarkQueryResponse {
-            bookmarks: bookmarks_with_tags,
-            total_count: total,
-            total_pages,
-            page: page.unwrap_or(0),
         };
     };
 }
@@ -184,18 +276,20 @@ pub fn list_all_custom_parsers(app: AppHandle) -> Vec<ParserConfig> {
 }
 
 #[tauri::command]
+pub fn list_supported_parsers(app: AppHandle, required_format: String) -> Vec<String> {
+    let binding = app.state::<Mutex<ParserRegistry>>();
+    let registry = binding.lock().unwrap();
+    registry.list_parsers_for_format(required_format)
+}
+
+#[tauri::command]
 pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
     let registry_binding = app.state::<Mutex<ParserRegistry>>();
     let app_data_binding = app.state::<Mutex<AppData>>();
     let mut registry = registry_binding.lock().unwrap();
     let mut app_data = app_data_binding.lock().unwrap();
     match parser_config.r#type.as_str() {
-        "python" => match PythonParser::new(
-            &parser_config.name,
-            &parser_config.r#type,
-            &parser_config.path,
-            &parser_config.supported_formats,
-        ) {
+        "python" => match PythonParser::new(&parser_config) {
             Ok(parser) => {
                 println!("Loaded Python parser: {}", parser_config.name);
                 send_notification(

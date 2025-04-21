@@ -81,25 +81,20 @@ pub struct PythonParser {
 }
 
 impl PythonParser {
-    pub fn new(
-        name: &str,
-        r#type: &str,
-        path: &str,
-        supported_formats: &Vec<String>,
-    ) -> Result<Self, ParserError> {
+    pub fn new(parser_info: &ParserConfig) -> Result<Self, ParserError> {
         // Validate that the script exists
-        if !Path::new(path).exists() {
+        if !Path::new(&parser_info.path).exists() {
             return Err(ParserError::FileReadError(format!(
                 "Python script not found: {}",
-                path
+                parser_info.path
             )));
         }
 
         Ok(Self {
-            name: name.to_string(),
-            r#type: r#type.to_string(),
-            path: path.to_string(),
-            supported_formats: supported_formats.to_vec(),
+            name: parser_info.name.to_string(),
+            r#type: parser_info.r#type.to_string(),
+            path: parser_info.path.to_string(),
+            supported_formats: parser_info.supported_formats.to_vec(),
         })
     }
 }

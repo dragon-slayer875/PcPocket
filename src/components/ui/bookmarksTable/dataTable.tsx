@@ -55,14 +55,17 @@ export function DataTable() {
   const [allBookmarks, setAllBookmarks] = useState<boolean>(
     Boolean(localStorage.getItem("bookmarksTableAllRows")) || false,
   );
+  const [filterInput, setFilter] = useState<string | undefined>(undefined);
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const { data } = useGetBookmarksQuery(
     pagination.pageSize,
     pagination.pageIndex,
     allBookmarks,
+    columnFilters,
+    sorting,
   );
-  const [sorting, setSorting] = useState<SortingState>([]);
   const [openImport, setOpenImport] = useState(false);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     id: false,
     created_at: false,
@@ -84,6 +87,8 @@ export function DataTable() {
     onRowSelectionChange: setRowSelection,
     onPaginationChange: setPagination,
     manualPagination: true,
+    manualFiltering: true,
+    manualSorting: true,
     rowCount: data?.totalCount,
     pageCount: data?.totalPages,
     state: {
@@ -144,6 +149,22 @@ export function DataTable() {
     };
   }, [handleFindShortcut, handleCopyShortcut]);
 
+  useEffect(() => {
+    if (!filterInput) {
+      setColumnFilters([]);
+      return;
+    }
+    // Extract title (non-tag text at the beginning)
+    const title = filterInput.match(/^[^#][\w\s]*/)?.[0] || "";
+
+    // Extract tags (words after # symbols)
+    const tags = filterInput.match(/#[\w\s]*/g) || [];
+
+    // Update filters
+    table.getColumn("title")?.setFilterValue(title);
+    table.getColumn("tags")?.setFilterValue(tags);
+  }, [filterInput]);
+
   // Optimize your second useEffect to avoid unnecessary operations
   useEffect(() => {
     // Only run this if filtering is active
@@ -170,30 +191,9 @@ export function DataTable() {
         <Input
           placeholder="Filter links: title#tag1#tag2"
           ref={searchRef}
-          value={(() => {
-            const title =
-              (table.getColumn("title")?.getFilterValue() as string) ?? "";
-            const tags =
-              (table.getColumn("tags")?.getFilterValue() as string[]) ?? [];
-            return (
-              title +
-              [...tags.map((tag) => (tag ? `${tag}` : ""))]
-                .filter(Boolean)
-                .join("")
-            );
-          })()}
-          onChange={(event) => {
-            const inputValue = event.target.value;
-
-            // Extract title (non-tag text at the beginning)
-            const title = inputValue.match(/^[^#][\w\s]*/);
-
-            // Extract tags (words after # symbols)
-            const tags = inputValue.match(/#[\w\s]*/g) || [];
-
-            // Update filters
-            table.getColumn("title")?.setFilterValue(title);
-            table.getColumn("tags")?.setFilterValue(tags);
+          value={filterInput}
+          onChange={(e) => {
+            setFilter(e.target.value);
           }}
           className="max-w-md mr-1"
         />
