@@ -13,8 +13,8 @@ function ImportForm({ setOpen }: { setOpen: (open: boolean) => void }) {
   const importBookmarks = useImportBookmarksMutation();
 
   useEffect(() => {
-    invoke("show_supported_parsers", {
-      format: filePath.split(".").pop(),
+    invoke("list_supported_parsers", {
+      requiredFormat: filePath.split(".").pop(),
     }).then((parsers) => {
       setSupportedParsers(parsers as string[]);
     });
