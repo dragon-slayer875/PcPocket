@@ -46,6 +46,7 @@ import { ImportWizard } from "@/components/importWizard";
 import { useGetBookmarksQuery } from "@/lib/queries";
 import { columns } from "./columns";
 import { BookmarkQueryItem } from "@/types";
+import { useDebounce } from "@/lib/utils";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -56,6 +57,7 @@ export function DataTable() {
     Boolean(localStorage.getItem("bookmarksTableAllRows")) || false,
   );
   const [filterInput, setFilter] = useState<string | undefined>(undefined);
+  const debouncedFilterInput = useDebounce(filterInput || "", 250);
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const { data } = useGetBookmarksQuery(
@@ -150,20 +152,20 @@ export function DataTable() {
   }, [handleFindShortcut, handleCopyShortcut]);
 
   useEffect(() => {
-    if (!filterInput) {
+    if (!debouncedFilterInput) {
       setColumnFilters([]);
       return;
     }
     // Extract title (non-tag text at the beginning)
-    const title = filterInput.match(/^[^#][\w\s]*/)?.[0] || "";
+    const title = debouncedFilterInput.match(/^[^#][\w\s]*/)?.[0] || "";
 
     // Extract tags (words after # symbols)
-    const tags = filterInput.match(/#[\w\s]*/g) || [];
+    const tags = debouncedFilterInput.match(/#[\w\s]*/g) || [];
 
     // Update filters
     table.getColumn("title")?.setFilterValue(title);
-    table.getColumn("tags")?.setFilterValue(tags);
-  }, [filterInput]);
+    table.getColumn("tags")?.setFilterValue(tags.map((tag) => tag.slice(1)));
+  }, [debouncedFilterInput]);
 
   // Optimize your second useEffect to avoid unnecessary operations
   useEffect(() => {
@@ -189,7 +191,7 @@ export function DataTable() {
     <div className="flex flex-col h-full gap-4">
       <div className="flex justify-between">
         <Input
-          placeholder="Filter links: title#tag1#tag2"
+          placeholder="Filter by title or tags: title#tag1#tag2"
           ref={searchRef}
           value={filterInput}
           onChange={(e) => {
@@ -258,9 +260,9 @@ export function DataTable() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
@@ -305,7 +307,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+        navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,

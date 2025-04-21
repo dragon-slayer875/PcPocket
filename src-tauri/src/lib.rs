@@ -105,6 +105,7 @@ pub fn run() {
             commands::create_db,
             commands::open_db,
             commands::get_bookmarks,
+            commands::get_all_tags,
             commands::import_bookmarks,
             commands::list_all_custom_parsers,
             commands::list_supported_parsers,

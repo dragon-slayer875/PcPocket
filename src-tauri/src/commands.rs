@@ -2,7 +2,6 @@ use crate::custom_parsers::{ParserRegistry, PythonParser};
 use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
-use diesel::associations::HasTable;
 use diesel::dsl::count;
 use diesel::{BelongingToDsl, ExpressionMethods, TextExpressionMethods};
 use diesel::{GroupedBy, QueryDsl, RunQueryDsl, SelectableHelper};
@@ -94,13 +93,15 @@ pub fn get_bookmarks(
     sort: Option<Vec<SortItem>>,
 ) -> BookmarkQueryResponse {
     use crate::schema::bookmarks_table::dsl::*;
+    use crate::schema::tags_table::{bookmark_id, table as tags_table, tag_name};
+    use diesel::prelude::*;
 
     let app_data = state.lock().unwrap();
     let mut conn = app_data.db_pool.get().unwrap();
 
-    let mut query = bookmarks_table::table().into_boxed();
+    let mut query = bookmarks_table.into_boxed();
 
-    let mut count_query = bookmarks_table::table().into_boxed();
+    let mut count_query = bookmarks_table.into_boxed();
 
     if let Some(filter_items) = &filters {
         let mut tag_filters: Vec<String> = Vec::new();
@@ -129,7 +130,23 @@ pub fn get_bookmarks(
                 }
                 "tags" => {
                     if let FilterValue::Tags(tag_values) = &filter.value {
-                        tag_filters = tag_values.clone();
+                        let mut bookmarks_with_tag_ids_query = tags_table.into_boxed();
+                        for (i, tag_value) in tag_values.iter().enumerate() {
+                            if i == 0 {
+                                bookmarks_with_tag_ids_query = bookmarks_with_tag_ids_query
+                                    .filter(tag_name.like(format!("%{}%", tag_value)));
+                            } else {
+                                bookmarks_with_tag_ids_query = bookmarks_with_tag_ids_query
+                                    .or_filter(tag_name.like(format!("%{}%", tag_value)));
+                            }
+                        }
+                        let bookmark_with_tag_ids = bookmarks_with_tag_ids_query
+                            .select(bookmark_id)
+                            .load::<i32>(&mut conn)
+                            .unwrap();
+
+                        query = query.filter(id.eq_any(bookmark_with_tag_ids.clone()));
+                        count_query = count_query.filter(id.eq_any(bookmark_with_tag_ids));
                     }
                 }
                 // Add more fields as needed
@@ -236,6 +253,23 @@ pub fn get_bookmarks(
             page: 0,
         };
     };
+}
+
+#[tauri::command]
+pub fn get_all_tags(state: State<'_, Mutex<AppData>>) -> Vec<String> {
+    use crate::schema::tags_table::dsl::*;
+    use diesel::prelude::*;
+
+    let app_data = state.lock().unwrap();
+    let mut conn = app_data.db_pool.get().unwrap();
+
+    let tags = tags_table
+        .select(tag_name)
+        .distinct()
+        .load::<String>(&mut conn)
+        .unwrap();
+
+    tags
 }
 
 #[tauri::command]

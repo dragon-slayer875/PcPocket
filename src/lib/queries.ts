@@ -19,7 +19,7 @@ import { ColumnFiltersState, SortingState } from "@tanstack/react-table";
 export function useGetDbPathQuery() {
   return useQuery({
     queryKey: ["dbPath"],
-    queryFn: async function () {
+    queryFn: async function() {
       return invoke("get_db_path");
     },
   });
@@ -29,7 +29,7 @@ export function useCreateDbMutation() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return save({
         defaultPath: "bookmarks.db",
       });
@@ -51,7 +51,7 @@ export function useCreateDbMutation() {
 export function useOpenDbMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function () {
+    mutationFn: async function() {
       return open();
     },
     async onSuccess(dbPath) {
@@ -73,7 +73,7 @@ export function useGetBookmarksQuery(
 ) {
   return useQuery({
     queryKey: ["bookmarks", page, pageSize, all, filters, sort],
-    queryFn: async function (): Promise<BookmarkGetQueryResponse> {
+    queryFn: async function(): Promise<BookmarkGetQueryResponse> {
       const response = await invoke("get_bookmarks", {
         page,
         pageSize,
@@ -88,10 +88,20 @@ export function useGetBookmarksQuery(
   });
 }
 
+export function useGetAllTagsQuery() {
+  return useQuery({
+    queryKey: ["tags"],
+    queryFn: async function() {
+      const response = await invoke("get_all_tags");
+      return response as string[];
+    },
+  });
+}
+
 export function useGetMetadataQuery(url: string) {
   return useQuery({
     queryKey: ["metadata", url],
-    queryFn: async function () {
+    queryFn: async function() {
       return getLinkPreview(url);
     },
   });
@@ -100,7 +110,7 @@ export function useGetMetadataQuery(url: string) {
 export function useGetCustomParsersQuery() {
   return useQuery({
     queryKey: ["customParsers"],
-    queryFn: async function (): Promise<ParserConfigType[]> {
+    queryFn: async function(): Promise<ParserConfigType[]> {
       return invoke("list_all_custom_parsers");
     },
     placeholderData: keepPreviousData,
@@ -111,7 +121,7 @@ export function useGetCustomParsersQuery() {
 export function useImportBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function ({
+    mutationFn: async function({
       filePath,
       parserName,
     }: {
@@ -132,7 +142,7 @@ export function useImportBookmarksMutation() {
 export function useInsertBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
       if (bookmarkClone.tags) {
         delete bookmarkClone.tags;
@@ -151,7 +161,7 @@ export function useInsertBookmarkMutation() {
 export function useUpdateBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (bookmark: BookmarkMutationItem) {
+    mutationFn: async function(bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
       if (bookmarkClone.tags) {
         delete bookmarkClone.tags;
@@ -172,7 +182,7 @@ export function useUpdateBookmarkMutation() {
 export function useUpdateTagsMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function ({
+    mutationFn: async function({
       ids,
       tagsToAdd,
       tagsToDelete,
@@ -196,7 +206,7 @@ export function useUpdateTagsMutation() {
 export function useDeleteBookmarkMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (id: number) {
+    mutationFn: async function(id: number) {
       return invoke("bookmark_delete", {
         deleteId: id,
       });
@@ -210,7 +220,7 @@ export function useDeleteBookmarkMutation() {
 export function useDeleteMultipleBookmarksMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function ({ ids }: { ids: number[] }) {
+    mutationFn: async function({ ids }: { ids: number[] }) {
       return invoke("batch_delete", {
         ids,
       });
@@ -224,7 +234,7 @@ export function useDeleteMultipleBookmarksMutation() {
 export function useAddCustomParserMutation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async function (parser: {
+    mutationFn: async function(parser: {
       name: string;
       type: "python";
       path: string;

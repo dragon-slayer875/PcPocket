@@ -383,18 +383,6 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         </div>
       );
     },
-    filterFn: (row, _, filterValue: string[]) => {
-      const tags = row.getValue("tags") as string[];
-      const cleanedFilterValue = filterValue.map((value) =>
-        value.toLowerCase().slice(1),
-      );
-
-      return cleanedFilterValue.every((filter) =>
-        tags.some(
-          (tag) => tag.toLowerCase().includes(filter) || tag === filter,
-        ),
-      );
-    },
     cell: ({ row, table }) => {
       const tags = row.getValue("tags") as string[];
       return (
@@ -405,9 +393,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
               onClick={function () {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
-                table
-                  .getColumn("tags")
-                  ?.setFilterValue([...filters, `#${tag}`]);
+                table.getColumn("tags")?.setFilterValue([...filters, `${tag}`]);
               }}
               className="cursor-pointer"
             >
