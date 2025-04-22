@@ -24,10 +24,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
                 let config_path = app.path().app_config_dir().unwrap().join("config.json");
-                let binding = app.app_handle().state::<Mutex<AppData>>();
-                let app_data = binding.lock().unwrap();
-                let modified_app_data = app_data.to_storage();
-                write_app_data_storage(config_path, &modified_app_data).unwrap();
+                write_app_data_storage(config_path, app).unwrap();
                 EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
                 app.exit(0);
             }

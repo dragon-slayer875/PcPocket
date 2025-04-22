@@ -57,7 +57,6 @@ impl AppDataStorage {
 pub struct AppData {
     pub db_pool: DbPool,
     pub db_path: String,
-    pub custom_parsers: Vec<ParserConfig>,
 }
 
 impl AppData {
@@ -66,15 +65,6 @@ impl AppData {
         AppData {
             db_pool: database_cmds::establish_connection_pool(&storage.db_path),
             db_path: storage.db_path,
-            custom_parsers: storage.custom_parsers,
-        }
-    }
-
-    // Convert to storage format (dropping the DbPool)
-    pub fn to_storage(&self) -> AppDataStorage {
-        AppDataStorage {
-            db_path: self.db_path.clone(),
-            custom_parsers: self.custom_parsers.clone(),
         }
     }
 }

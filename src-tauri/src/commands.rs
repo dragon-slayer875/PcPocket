@@ -319,9 +319,7 @@ pub fn list_supported_parsers(app: AppHandle, required_format: String) -> Vec<St
 #[tauri::command]
 pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
     let registry_binding = app.state::<Mutex<ParserRegistry>>();
-    let app_data_binding = app.state::<Mutex<AppData>>();
     let mut registry = registry_binding.lock().unwrap();
-    let mut app_data = app_data_binding.lock().unwrap();
     match parser_config.r#type.as_str() {
         "python" => match PythonParser::new(&parser_config) {
             Ok(parser) => {
@@ -332,7 +330,6 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                     &format!("Custom parser '{}' added successfully", parser_config.name),
                 )
                 .expect("Failed to send notification");
-                app_data.custom_parsers.push(parser_config.clone());
                 registry
                     .register(parser.name.clone(), Box::new(parser))
                     .unwrap();

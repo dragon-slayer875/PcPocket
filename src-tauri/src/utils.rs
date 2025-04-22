@@ -1,8 +1,12 @@
+use crate::custom_parsers::ParserRegistry;
+use crate::setup::AppData;
 use crate::setup::AppDataStorage;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::path::Path;
+use std::sync::Mutex;
 use tauri::AppHandle;
+use tauri::Manager;
 use tauri_plugin_notification::NotificationExt;
 
 pub fn read_app_data_storage<P: AsRef<Path>>(path: P) -> AppDataStorage {
@@ -33,9 +37,22 @@ pub fn read_app_data_storage<P: AsRef<Path>>(path: P) -> AppDataStorage {
     }
 }
 
-pub fn write_app_data_storage<P: AsRef<Path>>(path: P, storage: &AppDataStorage) -> io::Result<()> {
+pub fn write_app_data_storage<P: AsRef<Path>>(path: P, app_handle: &AppHandle) -> io::Result<()> {
+    let app_data_binding = app_handle.state::<Mutex<AppData>>();
+    let registry_binding = app_handle.state::<Mutex<ParserRegistry>>();
+    let app_data = app_data_binding.lock().unwrap();
+    let registry = registry_binding.lock().unwrap();
+
+    let mut storage = AppDataStorage::default();
+    storage.db_path = app_data.db_path.clone();
+    storage.custom_parsers = registry
+        .parsers
+        .values()
+        .map(|parser| parser.info())
+        .collect();
+
     // Convert AppDataStorage to JSON string
-    let json_content = serde_json::to_string_pretty(storage)
+    let json_content = serde_json::to_string_pretty(&storage)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
     // Open file for writing (create if doesn't exist, truncate if exists)
