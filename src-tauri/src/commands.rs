@@ -3,8 +3,6 @@ use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
 use crate::utils::send_notification;
 use diesel::dsl::count;
-use diesel::{BelongingToDsl, ExpressionMethods, TextExpressionMethods};
-use diesel::{GroupedBy, QueryDsl, RunQueryDsl, SelectableHelper};
 use serde::Deserialize;
 use std::sync::Mutex;
 use tauri::WebviewUrl;
@@ -104,8 +102,6 @@ pub fn get_bookmarks(
     let mut count_query = bookmarks_table.into_boxed();
 
     if let Some(filter_items) = &filters {
-        let mut tag_filters: Vec<String> = Vec::new();
-
         for filter in filter_items {
             // Apply each filter based on column name
             match filter.id.as_str() {
@@ -284,16 +280,12 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
             batch_insert(&app, parsed_bookmarks.get_successful())
                 .expect("Failed to insert bookmarks into the database");
 
-            send_notification(&app, "PcPocket", "Bookmarks imported successfully")
+            send_notification("PcPocket", "Bookmarks imported successfully")
                 .expect("Failed to send notification");
         }
         Err(e) => {
-            send_notification(
-                &app,
-                "PcPocket",
-                &format!("Error importing bookmarks: {}", e),
-            )
-            .expect("Failed to send notification");
+            send_notification("PcPocket", &format!("Error importing bookmarks: {}", e))
+                .expect("Failed to send notification");
         }
     }
 }
@@ -325,7 +317,6 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
             Ok(parser) => {
                 println!("Loaded Python parser: {}", parser_config.name);
                 send_notification(
-                    &app,
                     "PcPocket",
                     &format!("Custom parser '{}' added successfully", parser_config.name),
                 )
@@ -340,7 +331,6 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                     parser_config.path, e
                 );
                 send_notification(
-                    &app,
                     "Parser Error",
                     &format!(
                         "Failed to load Python parser from {}: {}",

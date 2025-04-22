@@ -71,7 +71,6 @@
         }
       ]
     },
-    "notification:default",
     "clipboard-manager:allow-write-text"
   ]
 }

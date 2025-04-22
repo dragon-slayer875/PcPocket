@@ -102,7 +102,7 @@ fn load_app_config(app: &AppHandle) -> AppDataStorage {
         Ok(config) => config,
         Err(e) => {
             eprintln!("Failed to load config: {}", e);
-            send_notification(app, "Config Error", e.to_string().as_str()).unwrap_or_default();
+            send_notification("Config Error", e.to_string().as_str()).unwrap_or_default();
             Config::builder()
                 .add_source(File::with_name(default_config_path.to_str().unwrap()))
                 .build()
@@ -115,7 +115,7 @@ fn load_app_config(app: &AppHandle) -> AppDataStorage {
         Err(e) => {
             rename(&config_path, config_path.with_extension("bak")).ok();
             eprintln!("Failed to load config: {}", e);
-            send_notification(app, "Config Error", e.to_string().as_str()).unwrap_or_default();
+            send_notification("Config Error", e.to_string().as_str()).unwrap_or_default();
         }
     }
 
@@ -126,12 +126,6 @@ fn load_app_config(app: &AppHandle) -> AppDataStorage {
 }
 
 pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
-    use tauri_plugin_notification::NotificationExt;
-    let permission_state = app.notification().permission_state().unwrap();
-    if permission_state != tauri_plugin_notification::PermissionState::Granted {
-        let _ = app.notification().request_permission();
-    }
-
     let app_data_storage = load_app_config(&app);
     app.manage(Mutex::new(AppData::from_storage(app_data_storage.clone())));
 
@@ -175,7 +169,6 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
                         parser_info.path, e
                     );
                     send_notification(
-                        &app,
                         "Parser Error",
                         &format!(
                             "Failed to load Python parser from {}: {}",

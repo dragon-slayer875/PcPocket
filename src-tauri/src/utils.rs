@@ -7,7 +7,6 @@ use std::path::Path;
 use std::sync::Mutex;
 use tauri::AppHandle;
 use tauri::Manager;
-use tauri_plugin_notification::NotificationExt;
 
 pub fn read_app_data_storage<P: AsRef<Path>>(path: P) -> AppDataStorage {
     // Try to open and read the file
@@ -68,15 +67,8 @@ pub fn write_app_data_storage<P: AsRef<Path>>(path: P, app_handle: &AppHandle) -
     Ok(())
 }
 
-pub fn send_notification(
-    app: &AppHandle,
-    title: &str,
-    body: &str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    app.notification()
-        .builder()
-        .title(title)
-        .body(body)
-        .show()?;
+pub fn send_notification(title: &str, body: &str) -> Result<(), Box<dyn std::error::Error>> {
+    use notify_rust::Notification;
+    Notification::new().summary(title).body(body).show()?;
     Ok(())
 }

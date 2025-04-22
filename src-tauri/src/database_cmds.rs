@@ -135,7 +135,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification(&app, "PcPocket", "Bookmark added successfully")
+    send_notification("PcPocket", "Bookmark added successfully")
         .expect("Failed to send notification");
 }
 
@@ -182,7 +182,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification(&app, "PcPocket", "Bookmark updated successfully")
+    send_notification("PcPocket", "Bookmark updated successfully")
         .expect("Failed to send notification");
 }
 
@@ -206,7 +206,7 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification(&app, "PcPocket", "Bookmark deleted successfully")
+    send_notification("PcPocket", "Bookmark deleted successfully")
         .expect("Failed to send notification");
 }
 
@@ -257,7 +257,7 @@ pub fn tags_update(
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification(&app, "PcPocket", "Tags updated successfully")
+    send_notification("PcPocket", "Tags updated successfully")
         .expect("Failed to send notification");
 }
 
@@ -281,6 +281,6 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
     .unwrap();
 
     app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification(&app, "PcPocket", "Bookmarks deleted successfully")
+    send_notification("PcPocket", "Bookmarks deleted successfully")
         .expect("Failed to send notification");
 }
