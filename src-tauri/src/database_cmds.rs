@@ -50,7 +50,7 @@ pub fn batch_insert(
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     let bookmarks_temp: Vec<(BookmarkNew, Vec<String>)> = bookmarks
         .iter()
@@ -99,7 +99,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
     conn.transaction(|conn| {
@@ -144,7 +144,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
     conn.transaction(|conn| {
@@ -191,7 +191,7 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
     conn.transaction(|conn| {
@@ -220,7 +220,7 @@ pub fn tags_update(
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
     conn.transaction(|conn| {
@@ -266,7 +266,7 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
     // Get database connection from app state
     let binding = app.app_handle().state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
-    let mut conn = app_data.db_pool.get().unwrap();
+    let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
     conn.transaction(|conn| {
