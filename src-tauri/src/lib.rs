@@ -1,13 +1,17 @@
+use crate::logger::init_logger;
 use database_cmds::bookmark_insert;
 use models::BookmarkNew;
+use std::thread;
 use tauri::async_runtime::spawn;
 use tauri::Manager;
 use time::OffsetDateTime;
 use url::Url;
+use utils::{broadcast_info, watch_config};
 
 mod commands;
 mod custom_parsers;
 mod database_cmds;
+mod logger;
 mod models;
 mod parser_errors;
 mod runtime;
@@ -93,7 +97,22 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
+            let log_path = app.path().app_config_dir().unwrap().join("log.txt");
+            init_logger(log_path.to_str().unwrap());
             spawn(setup::setup_tasks(app.handle().clone()));
+            let handle = app.handle().clone();
+            let boxed_handle = Box::new(handle);
+            let config_path = app.path().app_config_dir().unwrap().join("config.json");
+            thread::spawn(move || match watch_config(config_path, &*boxed_handle) {
+                Ok(_) => {}
+                Err(e) => {
+                    broadcast_info(
+                        "Config Watcher Error",
+                        &format!("Failed to watch config file: {}", e),
+                        log::Level::Error,
+                    );
+                }
+            });
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())

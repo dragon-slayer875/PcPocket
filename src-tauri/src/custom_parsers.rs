@@ -1,6 +1,7 @@
 use crate::{
-    models::BookmarkNew, parser_errors::ParserError, setup::ParserConfig,
-    structs::BrowserJsonBookmarkItem,
+    models::BookmarkNew,
+    parser_errors::ParserError,
+    structs::{BrowserJsonBookmarkItem, ParserConfig},
 };
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -63,6 +64,11 @@ impl ParserRegistry {
                 }
             })
             .collect()
+    }
+
+    pub fn remove_parsers(&mut self) {
+        self.parsers
+            .retain(|_, value| value.info().r#type == "default");
     }
 }
 

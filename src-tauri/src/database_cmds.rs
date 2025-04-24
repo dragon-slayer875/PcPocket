@@ -2,7 +2,7 @@ use crate::models::{BookmarkNew, TagNew};
 use crate::schema::bookmarks_table::id;
 use crate::schema::tags_table::bookmark_id;
 use crate::structs::ParsedBookmarkWithTags;
-use crate::utils::send_notification;
+use crate::utils::broadcast_info;
 use diesel::backend::Backend;
 use diesel::prelude::*;
 use diesel::r2d2::{ConnectionManager, Pool, PooledConnection};
@@ -11,7 +11,7 @@ use std::error::Error;
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 
-use crate::setup::AppData;
+use crate::structs::AppData;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
@@ -102,7 +102,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
     let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
-    conn.transaction(|conn| {
+    match conn.transaction(|conn| {
         use crate::schema::{bookmarks_table, tags_table};
         use diesel::prelude::*;
 
@@ -131,12 +131,23 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
         }
 
         Ok(()) as Result<(), diesel::result::Error>
-    })
-    .unwrap();
-
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification("PcPocket", "Bookmark added successfully")
-        .expect("Failed to send notification");
+    }) {
+        Ok(_) => {
+            app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+            broadcast_info(
+                "Bookmark Inserted",
+                "Bookmark inserted successfully",
+                log::Level::Info,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error inserting bookmark: {}", e),
+                log::Level::Error,
+            );
+        }
+    }
 }
 
 #[tauri::command]
@@ -147,7 +158,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
     let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
-    conn.transaction(|conn| {
+    match conn.transaction(|conn| {
         use crate::schema::{bookmarks_table, tags_table};
         use diesel::prelude::*;
 
@@ -178,12 +189,23 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
                 .unwrap();
         }
         Ok(()) as Result<(), diesel::result::Error>
-    })
-    .unwrap();
-
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification("PcPocket", "Bookmark updated successfully")
-        .expect("Failed to send notification");
+    }) {
+        Ok(_) => {
+            app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+            broadcast_info(
+                "Bookmark Updated",
+                "Bookmark updated successfully",
+                log::Level::Info,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error updating bookmark: {}", e),
+                log::Level::Error,
+            );
+        }
+    }
 }
 
 #[tauri::command]
@@ -194,7 +216,7 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
     let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
-    conn.transaction(|conn| {
+    match conn.transaction(|conn| {
         use crate::schema::bookmarks_table;
         use diesel::prelude::*;
 
@@ -202,12 +224,23 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
         diesel::delete(bookmarks_table::table.filter(id.eq(delete_id))).execute(conn)?;
 
         Ok(()) as Result<(), diesel::result::Error>
-    })
-    .unwrap();
-
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification("PcPocket", "Bookmark deleted successfully")
-        .expect("Failed to send notification");
+    }) {
+        Ok(_) => {
+            app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+            broadcast_info(
+                "Bookmark Deleted",
+                "Bookmark deleted successfully",
+                log::Level::Info,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error deleting bookmarks: {}", e),
+                log::Level::Error,
+            );
+        }
+    }
 }
 
 #[tauri::command]
@@ -223,7 +256,7 @@ pub fn tags_update(
     let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
-    conn.transaction(|conn| {
+    match conn.transaction(|conn| {
         use crate::schema::tags_table;
         use diesel::prelude::*;
 
@@ -253,12 +286,23 @@ pub fn tags_update(
         }
 
         Ok(()) as Result<(), diesel::result::Error>
-    })
-    .unwrap();
-
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification("PcPocket", "Tags updated successfully")
-        .expect("Failed to send notification");
+    }) {
+        Ok(_) => {
+            app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+            broadcast_info(
+                "Bookmarks Updated",
+                "Tags updated successfully",
+                log::Level::Info,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error updating bookmarks: {}", e),
+                log::Level::Error,
+            );
+        }
+    }
 }
 
 #[tauri::command]
@@ -269,7 +313,7 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
     let mut conn = get_connection(&app_data.db_pool);
 
     // Begin transaction
-    conn.transaction(|conn| {
+    match conn.transaction(|conn| {
         use crate::schema::bookmarks_table;
         use diesel::prelude::*;
 
@@ -277,10 +321,21 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
         diesel::delete(bookmarks_table::table.filter(id.eq_any(&ids))).execute(conn)?;
 
         Ok(()) as Result<(), diesel::result::Error>
-    })
-    .unwrap();
-
-    app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
-    send_notification("PcPocket", "Bookmarks deleted successfully")
-        .expect("Failed to send notification");
+    }) {
+        Ok(_) => {
+            app.emit("bookmarks-updated", "bookmarks-updated").unwrap();
+            broadcast_info(
+                "Bookmarks Deleted",
+                "Bookmarks deleted successfully",
+                log::Level::Info,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error deleting bookmarks: {}", e),
+                log::Level::Error,
+            );
+        }
+    }
 }

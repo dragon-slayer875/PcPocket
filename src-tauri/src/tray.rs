@@ -1,4 +1,4 @@
-use std::sync::{atomic::AtomicBool, Mutex};
+use std::sync::atomic::AtomicBool;
 
 use tauri::{
     menu::{Menu, MenuEvent, MenuItem},
@@ -6,7 +6,7 @@ use tauri::{
     AppHandle, Manager,
 };
 
-use crate::{commands, setup::AppData, utils::write_app_data_storage};
+use crate::{commands, utils::write_app_data_to_storage};
 
 pub static EXIT_FLAG: AtomicBool = AtomicBool::new(false);
 
@@ -24,7 +24,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
                 let config_path = app.path().app_config_dir().unwrap().join("config.json");
-                write_app_data_storage(config_path, app).unwrap();
+                write_app_data_to_storage(config_path, app).unwrap();
                 EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
                 app.exit(0);
             }

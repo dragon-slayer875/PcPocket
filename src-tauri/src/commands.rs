@@ -1,7 +1,7 @@
 use crate::custom_parsers::{ParserRegistry, PythonParser};
 use crate::database_cmds::batch_insert;
 use crate::models::{Bookmark, Tag};
-use crate::utils::send_notification;
+use crate::utils::broadcast_info;
 use diesel::dsl::count;
 use serde::Deserialize;
 use std::sync::Mutex;
@@ -9,7 +9,7 @@ use tauri::WebviewUrl;
 use tauri::{AppHandle, Manager, State};
 
 use crate::database_cmds;
-use crate::setup::{AppData, ParserConfig};
+use crate::structs::{AppData, ParserConfig};
 use crate::structs::{BookmarkQueryResponse, BookmarkWithTags};
 
 #[derive(Debug, Deserialize)]
@@ -38,6 +38,7 @@ pub fn open_main_window(app_handle: &AppHandle) {
         crate::dock::set_dock_visible(true);
     }
     if let Some(window) = app_handle.get_webview_window("main") {
+        println!("Window already exists");
         window.show().unwrap();
         window.set_focus().unwrap();
     } else {
@@ -185,10 +186,17 @@ pub fn get_bookmarks(
         }
     }
 
-    let total = count_query
-        .select(count(id))
-        .first::<i64>(&mut conn)
-        .unwrap();
+    let total = match count_query.select(count(id)).first::<i64>(&mut conn) {
+        Ok(total) => total,
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error reading bookmarks: {}", e),
+                log::Level::Error,
+            );
+            return BookmarkQueryResponse::default();
+        }
+    };
 
     let mut bookmarks_query = query.select(Bookmark::as_select());
 
@@ -259,13 +267,21 @@ pub fn get_all_tags(state: State<'_, Mutex<AppData>>) -> Vec<String> {
     let app_data = state.lock().unwrap();
     let mut conn = app_data.db_pool.get().unwrap();
 
-    let tags = tags_table
+    match tags_table
         .select(tag_name)
         .distinct()
         .load::<String>(&mut conn)
-        .unwrap();
-
-    tags
+    {
+        Ok(tags) => tags,
+        Err(e) => {
+            broadcast_info(
+                "Database Error",
+                &format!("Error reading tags: {}", e),
+                log::Level::Error,
+            );
+            return vec![];
+        }
+    }
 }
 
 #[tauri::command]
@@ -276,16 +292,31 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
     let parser_result = parser.parse(&file_path);
 
     match parser_result {
-        Ok(parsed_bookmarks) => {
-            batch_insert(&app, parsed_bookmarks.get_successful())
-                .expect("Failed to insert bookmarks into the database");
-
-            send_notification("PcPocket", "Bookmarks imported successfully")
-                .expect("Failed to send notification");
-        }
+        Ok(parsed_bookmarks) => match batch_insert(&app, parsed_bookmarks.get_successful()) {
+            Ok(_) => {
+                broadcast_info(
+                    "Bookmarks Imported",
+                    &format!(
+                        "Successfully imported {} bookmarks",
+                        parsed_bookmarks.get_successful().len()
+                    ),
+                    log::Level::Info,
+                );
+            }
+            Err(e) => {
+                broadcast_info(
+                    "Bookmarks Import Error",
+                    &format!("Error inserting bookmarks: {}", e),
+                    log::Level::Error,
+                );
+            }
+        },
         Err(e) => {
-            send_notification("PcPocket", &format!("Error importing bookmarks: {}", e))
-                .expect("Failed to send notification");
+            broadcast_info(
+                "Bookmarks Import Error",
+                &format!("Error parsing bookmarks: {}", e),
+                log::Level::Error,
+            );
         }
     }
 }
@@ -314,34 +345,39 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
     let mut registry = registry_binding.lock().unwrap();
     match parser_config.r#type.as_str() {
         "python" => match PythonParser::new(&parser_config) {
-            Ok(parser) => {
-                println!("Loaded Python parser: {}", parser_config.name);
-                send_notification(
-                    "PcPocket",
-                    &format!("Custom parser '{}' added successfully", parser_config.name),
-                )
-                .expect("Failed to send notification");
-                registry
-                    .register(parser.name.clone(), Box::new(parser))
-                    .unwrap();
-            }
+            Ok(parser) => match registry.register(parser.name.clone(), Box::new(parser)) {
+                Ok(_) => {
+                    broadcast_info(
+                        "Parser Registered",
+                        &format!("Registered parser: {}", parser_config.name),
+                        log::Level::Info,
+                    );
+                }
+                Err(e) => {
+                    broadcast_info(
+                        "Parser Registration Error",
+                        &format!("Failed to register parser: {}", e),
+                        log::Level::Error,
+                    );
+                }
+            },
             Err(e) => {
-                eprintln!(
-                    "Failed to load Python parser from {}: {}",
-                    parser_config.path, e
-                );
-                send_notification(
+                broadcast_info(
                     "Parser Error",
                     &format!(
                         "Failed to load Python parser from {}: {}",
                         parser_config.path, e
                     ),
-                )
-                .unwrap_or_default();
+                    log::Level::Error,
+                );
             }
         },
         _ => {
-            eprintln!("Unknown parser type: {}", parser_config.r#type);
+            broadcast_info(
+                "Parser Error",
+                &format!("Unsupported parser type: {}", parser_config.r#type),
+                log::Level::Warn,
+            );
         }
     }
 }
