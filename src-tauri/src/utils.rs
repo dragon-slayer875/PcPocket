@@ -77,7 +77,7 @@ pub fn write_app_data_to_storage(app_handle: &AppHandle) -> io::Result<()> {
         .parsers
         .values()
         .filter_map(|parser| {
-            if parser.info().r#type == "default" {
+            if parser.info().r#type != "default" {
                 Some(parser.info())
             } else {
                 None
