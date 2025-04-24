@@ -78,7 +78,13 @@ pub fn write_app_data_to_storage(app_handle: &AppHandle) -> io::Result<()> {
     storage.custom_parsers = registry
         .parsers
         .values()
-        .map(|parser| parser.info())
+        .filter_map(|parser| {
+            if parser.info().r#type == "default" {
+                Some(parser.info())
+            } else {
+                None
+            }
+        })
         .collect();
 
     // Convert AppDataStorage to JSON string
@@ -133,35 +139,31 @@ pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> notify::R
     // below will be monitored for changes.
     debouncer.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
 
-    spawn(move || {
-        for result in rx {
-            match result {
-                Ok(events) => events.iter().for_each(|event| match event.kind {
-                    notify::EventKind::Modify(notify::event::ModifyKind::Data(
-                        notify::event::DataChange::Any,
-                    )) => {
-                        refresh_app_data(&app_handle);
-                    }
-                    notify::EventKind::Remove(_) => {
-                        broadcast_info(
-                            "File Removed",
-                            &format!("File removed: {:?}\n Using defaults.", event.paths),
-                            log::Level::Warn,
-                        );
-                        refresh_app_data(&app_handle);
-                    }
-                    _ => {}
-                }),
-                Err(errors) => errors.iter().for_each(|error| {
+    for result in rx {
+        match result {
+            Ok(events) => events.iter().for_each(|event| match event.kind {
+                notify::EventKind::Modify(notify::event::ModifyKind::Any) => {
+                    refresh_app_data(&app_handle);
+                }
+                notify::EventKind::Remove(_) => {
                     broadcast_info(
-                        "File Watcher Error",
-                        &format!("Error watching file: {}", error),
-                        log::Level::Error,
-                    )
-                }),
-            }
+                        "File Removed",
+                        &format!("File removed: {:?}\n Using defaults.", event.paths),
+                        log::Level::Warn,
+                    );
+                    refresh_app_data(&app_handle);
+                }
+                _ => {}
+            }),
+            Err(errors) => errors.iter().for_each(|error| {
+                broadcast_info(
+                    "File Watcher Error",
+                    &format!("Error watching file: {}", error),
+                    log::Level::Error,
+                )
+            }),
         }
-    });
+    }
 
     Ok(())
 }
