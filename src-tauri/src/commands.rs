@@ -38,7 +38,6 @@ pub fn open_main_window(app_handle: &AppHandle) {
         crate::dock::set_dock_visible(true);
     }
     if let Some(window) = app_handle.get_webview_window("main") {
-        println!("Window already exists");
         window.show().unwrap();
         window.set_focus().unwrap();
     } else {

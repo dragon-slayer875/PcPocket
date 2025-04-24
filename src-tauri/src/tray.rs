@@ -14,8 +14,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let open_i = MenuItem::with_id(app, "open", "Open PcPocket", true, None::<&str>)?;
     let app_clone = app.clone();
-    let app_clone1 = app.clone();
-    let menu = Menu::with_items(&app.clone(), &[&open_i, &quit_i])?;
+    let menu = Menu::with_items(app, &[&open_i, &quit_i])?;
     let _ = TrayIconBuilder::with_id("tray")
         .tooltip("PcPocket")
         .icon(app.default_window_icon().unwrap().clone())
@@ -42,7 +41,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
                 commands::open_main_window(&app_clone);
             }
         })
-        .build(&app_clone1);
+        .build(app);
 
     Ok(())
 }
