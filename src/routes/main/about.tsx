@@ -22,7 +22,7 @@ function RouteComponent() {
   // Replace with your app's information
   const appInfo = {
     name: "PcPocket",
-    version: "4.5.0-alpha",
+    version: "5.0.0-alpha",
     description:
       "Cross platform offline bookmark manager. Built with Tauri, React, and TypeScript.",
     author: {
