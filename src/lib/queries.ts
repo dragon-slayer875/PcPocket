@@ -49,6 +49,7 @@ export function useCreateDbMutation() {
 }
 
 export function useOpenDbMutation() {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function() {
@@ -58,6 +59,10 @@ export function useOpenDbMutation() {
       if (!dbPath) return;
       await invoke("open_db", {
         path: dbPath,
+      });
+      navigate({
+        to: Route.to,
+        replace: true,
       });
       queryClient.invalidateQueries({ queryKey: ["dbPath"] });
     },
