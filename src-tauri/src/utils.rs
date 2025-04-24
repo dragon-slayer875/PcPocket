@@ -10,9 +10,7 @@ use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
-use std::sync::Arc;
 use std::sync::Mutex;
-use std::thread::spawn;
 use std::{path::Path, time::Duration};
 use tauri::AppHandle;
 use tauri::Manager;
@@ -142,7 +140,7 @@ pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> notify::R
     for result in rx {
         match result {
             Ok(events) => events.iter().for_each(|event| match event.kind {
-                notify::EventKind::Modify(notify::event::ModifyKind::Any) => {
+                notify::EventKind::Modify(_) => {
                     refresh_app_data(&app_handle);
                 }
                 notify::EventKind::Remove(_) => {
