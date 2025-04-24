@@ -67,8 +67,7 @@ impl ParserRegistry {
     }
 
     pub fn remove_parsers(&mut self) {
-        self.parsers
-            .retain(|_, value| value.info().r#type == "default");
+        self.parsers.clear();
     }
 }
 

@@ -3,7 +3,7 @@ use std::sync::atomic::AtomicBool;
 use tauri::{
     menu::{Menu, MenuEvent, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager,
+    AppHandle,
 };
 
 use crate::{commands, utils::write_app_data_to_storage};
@@ -23,8 +23,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
-                let config_path = app.path().app_config_dir().unwrap().join("config.json");
-                write_app_data_to_storage(config_path, app).unwrap();
+                write_app_data_to_storage(app).unwrap();
                 EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
                 app.exit(0);
             }

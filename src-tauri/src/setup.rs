@@ -1,14 +1,13 @@
 use crate::structs::{AppData, AppDataStorage};
 use crate::utils::read_app_data_from_storage;
 use crate::utils::register_parsers;
-use log::info;
 use std::fs::create_dir;
 use std::path::PathBuf;
 use std::sync::Mutex;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_deep_link::DeepLinkExt;
 
-use crate::custom_parsers::{BrowserJsonParser, Parser, ParserRegistry};
+use crate::custom_parsers::ParserRegistry;
 use crate::tray;
 
 fn init_app_state(app: &AppHandle) {
@@ -35,14 +34,6 @@ fn init_app_state(app: &AppHandle) {
 
     let mut registry = ParserRegistry::new();
 
-    let default_browser_json_parser = BrowserJsonParser::new();
-    registry
-        .register(
-            default_browser_json_parser.name().to_string(),
-            Box::new(default_browser_json_parser),
-        )
-        .unwrap();
-
     register_parsers(&app_data_from_storage.custom_parsers, &mut registry);
 
     app.manage(Mutex::new(registry));
@@ -63,11 +54,6 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
             .eval("window.location.replace('main/bookmarks')")
             .unwrap();
     }
-
-    info!(
-        "db pool {:#?}",
-        app.state::<Mutex<AppData>>().lock().unwrap().db_pool
-    );
 
     tray::create_tray(&app).unwrap();
 

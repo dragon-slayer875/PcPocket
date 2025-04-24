@@ -1,8 +1,9 @@
 use crate::logger::init_logger;
 use database_cmds::bookmark_insert;
 use models::BookmarkNew;
-use std::thread;
+use std::sync::Arc;
 use tauri::async_runtime::spawn;
+use tauri::AppHandle;
 use tauri::Manager;
 use time::OffsetDateTime;
 use url::Url;
@@ -103,7 +104,7 @@ pub fn run() {
             let handle = app.handle().clone();
             let boxed_handle = Box::new(handle);
             let config_path = app.path().app_config_dir().unwrap().join("config.json");
-            thread::spawn(move || match watch_config(config_path, &*boxed_handle) {
+            match watch_config(config_path, *boxed_handle) {
                 Ok(_) => {}
                 Err(e) => {
                     broadcast_info(
@@ -112,7 +113,7 @@ pub fn run() {
                         log::Level::Error,
                     );
                 }
-            });
+            };
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())

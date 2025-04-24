@@ -1,5 +1,5 @@
 use crate::commands::{create_db, open_db};
-use crate::custom_parsers::{ParserRegistry, PythonParser};
+use crate::custom_parsers::{BrowserJsonParser, Parser, ParserRegistry, PythonParser};
 use crate::structs::{AppData, AppDataStorage, ParserConfig};
 use config::{Config, File};
 use log::warn;
@@ -10,7 +10,9 @@ use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
+use std::sync::Arc;
 use std::sync::Mutex;
+use std::thread::spawn;
 use std::{path::Path, time::Duration};
 use tauri::AppHandle;
 use tauri::Manager;
@@ -59,14 +61,17 @@ pub fn read_app_data_from_storage(
     AppDataStorage::from_file_hashmap(config_data)
 }
 
-pub fn write_app_data_to_storage<P: AsRef<Path>>(
-    path: P,
-    app_handle: &AppHandle,
-) -> io::Result<()> {
+pub fn write_app_data_to_storage(app_handle: &AppHandle) -> io::Result<()> {
     let app_data_binding = app_handle.state::<Mutex<AppData>>();
     let registry_binding = app_handle.state::<Mutex<ParserRegistry>>();
     let app_data = app_data_binding.lock().unwrap();
     let registry = registry_binding.lock().unwrap();
+
+    let path = app_handle
+        .path()
+        .app_config_dir()
+        .unwrap()
+        .join("config.json");
 
     let mut storage = AppDataStorage::default();
     storage.db_path = app_data.db_path.clone();
@@ -117,7 +122,7 @@ pub fn broadcast_info(title: &str, body: &str, level: log::Level) {
     }
 }
 
-pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: &AppHandle) -> notify::Result<()> {
+pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> notify::Result<()> {
     let (tx, rx) = std::sync::mpsc::channel();
 
     // Create a new debounced file watcher with a timeout of 2 seconds.
@@ -126,41 +131,52 @@ pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: &AppHandle) -> notify::
 
     // Add a path to be watched. All files and directories at that path and
     // below will be monitored for changes.
-    debouncer.watch(path.as_ref(), RecursiveMode::Recursive)?;
+    debouncer.watch(path.as_ref(), RecursiveMode::NonRecursive)?;
 
-    for result in rx {
-        match result {
-            Ok(events) => events.iter().for_each(|event| match event.kind {
-                notify::EventKind::Modify(notify::event::ModifyKind::Data(
-                    notify::event::DataChange::Any,
-                )) => {
-                    refresh_app_data(&app_handle);
-                }
-                notify::EventKind::Remove(_) => {
+    spawn(move || {
+        for result in rx {
+            match result {
+                Ok(events) => events.iter().for_each(|event| match event.kind {
+                    notify::EventKind::Modify(notify::event::ModifyKind::Data(
+                        notify::event::DataChange::Any,
+                    )) => {
+                        refresh_app_data(&app_handle);
+                    }
+                    notify::EventKind::Remove(_) => {
+                        broadcast_info(
+                            "File Removed",
+                            &format!("File removed: {:?}\n Using defaults.", event.paths),
+                            log::Level::Warn,
+                        );
+                        refresh_app_data(&app_handle);
+                    }
+                    _ => {}
+                }),
+                Err(errors) => errors.iter().for_each(|error| {
                     broadcast_info(
-                        "File Removed",
-                        &format!("File removed: {:?}\n Using defaults.", event.paths),
-                        log::Level::Warn,
-                    );
-                    refresh_app_data(&app_handle);
-                }
-                _ => {}
-            }),
-            Err(errors) => errors.iter().for_each(|error| {
-                broadcast_info(
-                    "File Watcher Error",
-                    &format!("Error watching file: {}", error),
-                    log::Level::Error,
-                )
-            }),
+                        "File Watcher Error",
+                        &format!("Error watching file: {}", error),
+                        log::Level::Error,
+                    )
+                }),
+            }
         }
-    }
+    });
 
     Ok(())
 }
 
 pub fn register_parsers(custom_parsers: &Vec<ParserConfig>, registry: &mut ParserRegistry) {
     registry.remove_parsers();
+
+    let default_browser_json_parser = BrowserJsonParser::new();
+    registry
+        .register(
+            default_browser_json_parser.name().to_string(),
+            Box::new(default_browser_json_parser),
+        )
+        .unwrap();
+
     for parser_info in custom_parsers {
         match parser_info.r#type.as_str() {
             "python" => match PythonParser::new(parser_info) {
