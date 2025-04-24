@@ -48,7 +48,7 @@ pub fn batch_insert(
     bookmarks: &Vec<ParsedBookmarkWithTags>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
@@ -97,7 +97,7 @@ pub fn batch_insert(
 #[tauri::command]
 pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>) {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
@@ -153,7 +153,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
 #[tauri::command]
 pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: Vec<String>) {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
@@ -211,7 +211,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
 #[tauri::command]
 pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
@@ -251,7 +251,7 @@ pub fn tags_update(
     tags_to_delete: Vec<String>,
 ) {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
@@ -308,7 +308,7 @@ pub fn tags_update(
 #[tauri::command]
 pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
     // Get database connection from app state
-    let binding = app.app_handle().state::<Mutex<AppData>>();
+    let binding = app.state::<Mutex<AppData>>();
     let app_data = binding.lock().unwrap();
     let mut conn = get_connection(&app_data.db_pool);
 
