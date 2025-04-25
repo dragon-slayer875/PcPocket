@@ -51,7 +51,7 @@ pub async fn setup_tasks(app: AppHandle) -> Result<(), ()> {
     {
         app.get_webview_window("main")
             .unwrap()
-            .eval("window.location.replace('main/bookmarks')")
+            .eval("window.location.replace('main/bookmarks/')")
             .unwrap();
     }
 

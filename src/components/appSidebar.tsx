@@ -15,17 +15,17 @@ import { Link } from "@tanstack/react-router";
 const items = [
   {
     title: "Bookmarks",
-    url: "/main/bookmarks",
+    url: "/main/bookmarks/",
     icon: Home,
   },
   {
     title: "Config",
-    url: "/main/config",
+    url: "/main/config/",
     icon: Settings,
   },
   {
     title: "About",
-    url: "/main/about",
+    url: "/main/about/",
     icon: Info,
   },
 ];
