@@ -1,4 +1,3 @@
-import { scan } from "react-scan"; // must be imported before React and React DOM
 import { StrictMode } from "react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
@@ -10,10 +9,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { createIDBPersister } from "./lib/iDbPersister";
-
-scan({
-  enabled: true,
-});
 
 const queryClient = new QueryClient({
   defaultOptions: {
