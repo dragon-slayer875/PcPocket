@@ -13,7 +13,6 @@ pub static EXIT_FLAG: AtomicBool = AtomicBool::new(false);
 pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
     let quit_i = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let open_i = MenuItem::with_id(app, "open", "Open PcPocket", true, None::<&str>)?;
-    let app_clone = app.clone();
     let menu = Menu::with_items(app, &[&open_i, &quit_i])?;
     let _ = TrayIconBuilder::with_id("tray")
         .tooltip("PcPocket")
@@ -30,15 +29,15 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
                 commands::open_main_window(app);
             }
         })
-        .on_tray_icon_event(move |_tray, event| {
+        .on_tray_icon_event(move |tray, event| {
             if let TrayIconEvent::Click {
                 button: MouseButton::Left,
                 button_state: MouseButtonState::Up,
                 ..
             } = event
             {
-                // focus window
-                commands::open_main_window(&app_clone);
+                // focus the main window
+                commands::open_main_window(tray.app_handle());
             }
         })
         .build(app);
