@@ -126,12 +126,22 @@ pub fn broadcast_info(title: &str, body: &str, level: log::Level) {
     }
 }
 
-pub fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> notify::Result<()> {
+pub async fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> notify::Result<()> {
     let (tx, rx) = std::sync::mpsc::channel();
 
     // Create a new debounced file watcher with a timeout of 2 seconds.
     // The tickrate will be selected automatically, as well as the underlying watch implementation.
-    let mut debouncer = new_debouncer(Duration::from_secs(2), None, tx)?;
+    let mut debouncer = match new_debouncer(Duration::from_secs(2), None, tx) {
+        Ok(debouncer) => debouncer,
+        Err(e) => {
+            broadcast_info(
+                "File Watcher Error",
+                &format!("Failed to create file watcher: {}", e),
+                log::Level::Error,
+            );
+            return Err(e);
+        }
+    };
 
     // Add a path to be watched. All files and directories at that path and
     // below will be monitored for changes.

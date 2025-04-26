@@ -1,12 +1,11 @@
 use crate::logger::init_logger;
 use database_cmds::bookmark_insert;
 use models::BookmarkNew;
-use std::thread;
-use tauri::async_runtime::spawn;
 use tauri::Manager;
+use tauri::{async_runtime::spawn, Listener};
 use time::OffsetDateTime;
 use url::Url;
-use utils::{broadcast_info, watch_config};
+use utils::{refresh_app_data, watch_config};
 
 mod commands;
 mod custom_parsers;
@@ -103,16 +102,7 @@ pub fn run() {
             let handle = app.handle().clone();
             let boxed_handle = Box::new(handle);
             let config_path = app.path().app_config_dir().unwrap().join("config.json");
-            thread::spawn(move || match watch_config(config_path, *boxed_handle) {
-                Ok(_) => {}
-                Err(e) => {
-                    broadcast_info(
-                        "Config Watcher Error",
-                        &format!("Failed to watch config file: {}", e),
-                        log::Level::Error,
-                    );
-                }
-            });
+            spawn(watch_config(config_path, *boxed_handle));
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
