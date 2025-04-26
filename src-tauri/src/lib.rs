@@ -1,11 +1,11 @@
 use crate::logger::init_logger;
 use database_cmds::bookmark_insert;
 use models::BookmarkNew;
+use tauri::async_runtime::spawn;
 use tauri::Manager;
-use tauri::{async_runtime::spawn, Listener};
 use time::OffsetDateTime;
 use url::Url;
-use utils::{refresh_app_data, watch_config};
+use utils::watch_config;
 
 mod commands;
 mod custom_parsers;
@@ -99,10 +99,8 @@ pub fn run() {
             let log_path = app.path().app_config_dir().unwrap().join("log.txt");
             init_logger(log_path.to_str().unwrap());
             spawn(setup::setup_tasks(app.handle().clone()));
-            let handle = app.handle().clone();
-            let boxed_handle = Box::new(handle);
             let config_path = app.path().app_config_dir().unwrap().join("config.json");
-            spawn(watch_config(config_path, *boxed_handle));
+            spawn(watch_config(config_path, app.handle().clone()));
             Ok(())
         })
         .plugin(tauri_plugin_dialog::init())
