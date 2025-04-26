@@ -31,7 +31,6 @@ pub struct SortItem {
     desc: bool,
 }
 
-#[tauri::command]
 pub fn open_main_window(app_handle: &AppHandle) {
     #[cfg(target_os = "macos")]
     {
