@@ -1,11 +1,10 @@
 import { BookmarkQueryItem } from "@/types";
 import { ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown, Clipboard, Edit, Globe, Trash } from "lucide-react";
+import { ArrowUpDown, Edit, Globe, Trash } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "../badge";
 import { openUrl } from "@tauri-apps/plugin-opener";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { useEffect, useState } from "react";
 import { BookmarkForm } from "@/components/bookmarkForm";
 import {

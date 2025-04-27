@@ -35,7 +35,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import { useEffect, useRef, useState, useCallback, RefObject } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  RefObject,
+  useMemo,
+} from "react";
 import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
@@ -77,9 +84,11 @@ export function DataTable() {
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
+  const memoizedColumns = useMemo(() => columns, []);
+
   const table = useReactTable({
     data: data?.bookmarks || [],
-    columns,
+    columns: memoizedColumns,
     getCoreRowModel: getCoreRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),

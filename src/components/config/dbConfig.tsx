@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Clipboard, FilePlus2, FolderOpen } from "lucide-react";
+import { FilePlus2, FolderOpen } from "lucide-react";
 import {
   useCreateDbMutation,
   useGetDbPathQuery,
