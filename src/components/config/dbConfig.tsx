@@ -15,6 +15,8 @@ import {
   useGetDbPathQuery,
   useOpenDbMutation,
 } from "@/lib/queries";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { CopyButton } from "../ui/copyButton";
 
 export function DbConfig() {
   const { data } = useGetDbPathQuery();
@@ -36,8 +38,14 @@ export function DbConfig() {
               readOnly
               className="flex-1 font-mono text-sm"
             />
-            <Button variant="outline" size="icon">
-              <Clipboard className="h-4 w-4" />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={async function() {
+                writeText(data as string);
+              }}
+            >
+              <CopyButton text={data as string} />
             </Button>
           </div>
         </div>
@@ -87,7 +95,7 @@ export function DbConfig() {
           </ul>
           <Button
             variant="destructive"
-            onClick={function () {
+            onClick={function() {
               openDbMutation.mutate();
             }}
           >

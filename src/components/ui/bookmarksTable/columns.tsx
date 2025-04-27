@@ -18,6 +18,7 @@ import { DrawerDialog } from "../drawerDialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "../separator";
 import { Input } from "../input";
+import { CopyButton } from "../copyButton";
 
 export const columns: ColumnDef<BookmarkQueryItem>[] = [
   {
@@ -122,7 +123,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   <Button
                     size={"lg"}
                     variant={"destructive"}
-                    onClick={async function () {
+                    onClick={async function() {
                       const tableData = table.getSelectedRowModel();
                       const ids: number[] = tableData.rows.map((row) =>
                         row.getValue("id"),
@@ -151,14 +152,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       const deleteBookmark = useDeleteBookmarkMutation();
       return (
         <div className="flex flex-1 justify-center">
-          <Button
-            variant={"ghost"}
-            onClick={async function () {
-              writeText(row.getValue("link") as string);
-            }}
-          >
-            <Clipboard />
-          </Button>
+          <CopyButton text={row.getValue("link") as string} />
           <DrawerDialog
             open={open}
             setOpen={setOpen}
@@ -199,7 +193,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                 <Button
                   size={"lg"}
                   variant={"destructive"}
-                  onClick={async function () {
+                  onClick={async function() {
                     await deleteBookmark.mutateAsync(
                       row.getValue("id") as number,
                     );
@@ -228,7 +222,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         <Button
           variant={"link"}
           className="inline-block flex-1 overflow-hidden h-max overflow-ellipsis text-left justify-start select-text cursor-pointer"
-          onClick={function () {
+          onClick={function() {
             openUrl(link);
           }}
         >
@@ -278,7 +272,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
         });
         setSelectedTags(initialSelectedTags);
 
-        return function () {
+        return function() {
           setSelectedTags(initialSelectedTags);
           setTagsToDelete(new Set());
           setTagsToAdd(new Set());
@@ -322,7 +316,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                         size={"sm"}
                         key={tag}
                         className="cursor-pointer rounded-lg"
-                        onClick={function () {
+                        onClick={function() {
                           handleDeleteTag(tag);
                         }}
                       >
@@ -338,7 +332,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                         key={tag}
                         className="cursor-pointer rounded-lg"
                         variant={"destructive"}
-                        onClick={function () {
+                        onClick={function() {
                           handleDeleteTag(tag);
                         }}
                       >
@@ -349,7 +343,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   <Input
                     type="text"
                     value={tagsInputValue}
-                    onChange={function (e) {
+                    onChange={function(e) {
                       setTagsInputValue(e.target.value);
                       setTagsToAdd(new Set(e.target.value.split(",")));
                     }}
@@ -359,7 +353,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
                   <Button
                     size={"lg"}
                     hidden={tagsToDelete.size === 0 && tagsToAdd.size === 0}
-                    onClick={async function () {
+                    onClick={async function() {
                       const tableData = table.getSelectedRowModel();
                       const ids: number[] = tableData.rows.map((row) =>
                         row.getValue("id"),
@@ -390,7 +384,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
           {tags.map((tag) => (
             <Badge
               key={tag}
-              onClick={function () {
+              onClick={function() {
                 const filters =
                   (table.getColumn("tags")?.getFilterValue() as string[]) || [];
                 table.getColumn("tags")?.setFilterValue([...filters, `${tag}`]);
