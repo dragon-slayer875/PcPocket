@@ -27,7 +27,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -50,10 +49,11 @@ import { toast } from "sonner";
 import { Import } from "lucide-react";
 import { DataTablePagination } from "./tablePagination";
 import { ImportWizard } from "@/components/importWizard";
-import { useGetBookmarksQuery } from "@/lib/queries";
+import { useGetAllTagsQuery, useGetBookmarksQuery } from "@/lib/queries";
 import { columns } from "./columns";
 import { BookmarkQueryItem } from "@/types";
 import { useDebounce } from "@/lib/utils";
+import AutocompleteInput from "../autoCompleteInput";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -74,6 +74,7 @@ export function DataTable() {
     columnFilters,
     sorting,
   );
+  const { data: tags } = useGetAllTagsQuery();
   const [openImport, setOpenImport] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     id: false,
@@ -150,6 +151,19 @@ export function DataTable() {
     [table],
   );
 
+  const setTagsFilter = useCallback(
+    (tags: string[]) => {
+      if (!tags || tags.length === 0) {
+        setColumnFilters((old) => {
+          return old.filter((f) => f.id !== "tags");
+        });
+      } else {
+        table.getColumn("tags")?.setFilterValue(tags);
+      }
+    },
+    [table],
+  );
+
   useEffect(() => {
     document.addEventListener("keydown", handleFindShortcut);
     document.addEventListener("keydown", handleCopyShortcut);
@@ -162,18 +176,14 @@ export function DataTable() {
 
   useEffect(() => {
     if (!debouncedFilterInput) {
-      setColumnFilters([]);
+      setColumnFilters((old) => {
+        return old.filter((f) => f.id !== "title");
+      });
       return;
     }
-    // Extract title (non-tag text at the beginning)
-    const title = debouncedFilterInput.match(/^[^#][\w\s]*/)?.[0] || "";
-
-    // Extract tags (words after # symbols)
-    const tags = debouncedFilterInput.match(/#[\w\s]*/g) || [];
 
     // Update filters
-    table.getColumn("title")?.setFilterValue(title);
-    table.getColumn("tags")?.setFilterValue(tags.map((tag) => tag.slice(1)));
+    table.getColumn("title")?.setFilterValue(debouncedFilterInput);
   }, [debouncedFilterInput]);
 
   // Optimize your second useEffect to avoid unnecessary operations
@@ -199,15 +209,26 @@ export function DataTable() {
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex justify-between">
-        <Input
-          placeholder="Filter by title or tags: title#tag1#tag2"
-          ref={searchRef}
-          value={filterInput}
-          onChange={(e) => {
-            setFilter(e.target.value);
-          }}
-          className="max-w-md mr-1"
-        />
+        <div className="flex gap-2">
+          <AutocompleteInput
+            suggestions={tags}
+            inputValue={filterInput}
+            setInputValue={setFilter}
+            inputRef={searchRef}
+            selectedSuggestions={
+              (table.getColumn("tags")?.getFilterValue() as string[]) || []
+            }
+            setSelectedSuggestions={setTagsFilter}
+          />
+          <Button
+            variant="ghost"
+            onClick={() => {
+              setColumnFilters([]);
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
         <div className="flex gap-2">
           <ImportWizard
             open={openImport}
@@ -269,9 +290,9 @@ export function DataTable() {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -316,7 +337,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-        navigator.userAgent.indexOf("Firefox") === -1
+      navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
