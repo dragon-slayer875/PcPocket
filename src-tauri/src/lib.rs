@@ -97,7 +97,7 @@ pub fn run() {
         .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
             let log_path = app.path().app_config_dir().unwrap().join("log.txt");
-            init_logger(log_path.to_str().unwrap());
+            init_logger(log_path.to_str().unwrap(), false);
             spawn(setup::setup_tasks(app.handle().clone()));
             let config_path = app.path().app_config_dir().unwrap().join("config.json");
             spawn(watch_config(config_path, app.handle().clone()));

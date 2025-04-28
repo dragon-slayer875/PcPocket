@@ -6,7 +6,7 @@ use tauri::{
     AppHandle,
 };
 
-use crate::{commands, utils::write_app_data_to_storage};
+use crate::{commands, utils::exit_app};
 
 pub static EXIT_FLAG: AtomicBool = AtomicBool::new(false);
 
@@ -21,9 +21,7 @@ pub fn create_tray(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_menu_event(move |app: &AppHandle, event: MenuEvent| {
             if event.id.as_ref() == "quit" {
-                write_app_data_to_storage(app).unwrap();
-                EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
-                app.exit(0);
+                exit_app(app);
             }
             if event.id.as_ref() == "open" {
                 commands::open_main_window(app);

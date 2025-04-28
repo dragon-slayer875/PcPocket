@@ -5,7 +5,12 @@ use log4rs::append::rolling_file::policy::compound::CompoundPolicy;
 use log4rs::config::{Appender, Config, Root};
 use log4rs::encode::pattern::PatternEncoder;
 
-pub fn init_logger(log_path: &str) {
+pub fn init_logger(log_path: &str, verbose: bool) {
+    let filter = match verbose {
+        true => LevelFilter::Trace,
+        false => LevelFilter::Warn,
+    };
+
     const TRIGGER_FILE_SIZE: u64 = 100 * 1024;
 
     let trigger = SizeTrigger::new(TRIGGER_FILE_SIZE);
@@ -25,12 +30,15 @@ pub fn init_logger(log_path: &str) {
     // and the programmatically specified level to stderr.
     let config = Config::builder()
         .appender(Appender::builder().build("logfile", Box::new(logfile)))
-        .build(
-            Root::builder()
-                .appender("logfile")
-                .build(LevelFilter::Trace),
-        )
+        .build(Root::builder().appender("logfile").build(filter))
         .unwrap();
 
-    let handle = log4rs::init_config(config).unwrap();
+    match log4rs::init_config(config) {
+        Ok(_) => {
+            log::info!("Logger initialized");
+        }
+        Err(e) => {
+            println!("Failed to initialize logger: {}", e);
+        }
+    }
 }

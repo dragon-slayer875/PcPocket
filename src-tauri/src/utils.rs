@@ -1,8 +1,9 @@
 use crate::commands::{create_db, open_db};
 use crate::custom_parsers::{BrowserJsonParser, Parser, ParserRegistry, PythonParser};
 use crate::structs::{AppData, AppDataStorage, ParserConfig};
+use crate::tray::EXIT_FLAG;
 use config::{Config, File};
-use log::warn;
+use log::{debug, trace, warn};
 use notify::RecursiveMode;
 use notify_debouncer_full::new_debouncer;
 use std::collections::HashMap;
@@ -32,6 +33,7 @@ pub fn read_app_data_from_storage(
                 "Config Error",
                 &format!("Failed to load config: {}", e),
                 log::Level::Error,
+                false,
             );
             Config::builder()
                 .add_source(File::with_name(default_config_path.to_str().unwrap()))
@@ -49,6 +51,7 @@ pub fn read_app_data_from_storage(
                 "Config Error",
                 &format!("Failed to deserialize config: {}", e),
                 log::Level::Error,
+                false,
             );
         }
     }
@@ -115,14 +118,18 @@ pub fn send_notification(title: &str, body: &str) {
     }
 }
 
-pub fn broadcast_info(title: &str, body: &str, level: log::Level) {
+pub fn broadcast_info(title: &str, body: &str, level: log::Level, user_action_needed: bool) {
     use log::{error, info, warn};
-    send_notification(title, body);
+    match user_action_needed {
+        true => send_notification(title, body),
+        false => {}
+    }
     match level {
         log::Level::Error => error!("{}", body),
         log::Level::Warn => warn!("{}", body),
         log::Level::Info => info!("{}", body),
-        _ => {}
+        log::Level::Debug => debug!("{}", body),
+        log::Level::Trace => trace!("{}", body),
     }
 }
 
@@ -138,6 +145,7 @@ pub async fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> not
                 "File Watcher Error",
                 &format!("Failed to create file watcher: {}", e),
                 log::Level::Error,
+                false,
             );
             return Err(e);
         }
@@ -158,6 +166,7 @@ pub async fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> not
                         "File Removed",
                         &format!("File removed: {:?}\n Using defaults.", event.paths),
                         log::Level::Warn,
+                        false,
                     );
                     refresh_app_data(&app_handle);
                 }
@@ -168,6 +177,7 @@ pub async fn watch_config<P: AsRef<Path>>(path: P, app_handle: AppHandle) -> not
                     "File Watcher Error",
                     &format!("Error watching file: {}", error),
                     log::Level::Error,
+                    false,
                 )
             }),
         }
@@ -197,6 +207,7 @@ pub fn register_parsers(custom_parsers: &Vec<ParserConfig>, registry: &mut Parse
                             "Parser Registration Error",
                             &format!("Failed to register parser: {}", e),
                             log::Level::Error,
+                            false,
                         );
                     }
                 },
@@ -208,6 +219,7 @@ pub fn register_parsers(custom_parsers: &Vec<ParserConfig>, registry: &mut Parse
                             parser_info.path, e
                         ),
                         log::Level::Error,
+                        false,
                     );
                 }
             },
@@ -216,6 +228,7 @@ pub fn register_parsers(custom_parsers: &Vec<ParserConfig>, registry: &mut Parse
                     "Parser Error",
                     &format!("Unsupported parser type: {}", parser_info.r#type),
                     log::Level::Warn,
+                    false,
                 );
             }
         }
@@ -245,6 +258,7 @@ pub fn refresh_app_data(app_handle: &AppHandle) {
             "Database Path Error",
             "Database path is empty. Retaining current path.",
             log::Level::Error,
+            false,
         );
     } else {
         if Path::new(&app_data_from_storage.db_path).exists() {
@@ -255,4 +269,10 @@ pub fn refresh_app_data(app_handle: &AppHandle) {
     }
 
     register_parsers(&app_data_from_storage.custom_parsers, &mut registry);
+}
+
+pub fn exit_app(app_handle: &AppHandle) {
+    EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
+    write_app_data_to_storage(app_handle).unwrap();
+    app_handle.exit(0);
 }

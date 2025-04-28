@@ -191,6 +191,7 @@ pub fn get_bookmarks(
                 "Database Error",
                 &format!("Error reading bookmarks: {}", e),
                 log::Level::Error,
+                true,
             );
             return BookmarkQueryResponse::default();
         }
@@ -276,6 +277,7 @@ pub fn get_all_tags(state: State<'_, Mutex<AppData>>) -> Vec<String> {
                 "Database Error",
                 &format!("Error reading tags: {}", e),
                 log::Level::Error,
+                true,
             );
             return vec![];
         }
@@ -299,6 +301,7 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
                         parsed_bookmarks.get_successful().len()
                     ),
                     log::Level::Info,
+                    false,
                 );
             }
             Err(e) => {
@@ -306,6 +309,7 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
                     "Bookmarks Import Error",
                     &format!("Error inserting bookmarks: {}", e),
                     log::Level::Error,
+                    true,
                 );
             }
         },
@@ -314,6 +318,7 @@ pub fn import_bookmarks(app: AppHandle, file_path: String, parser_name: String) 
                 "Bookmarks Import Error",
                 &format!("Error parsing bookmarks: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
@@ -349,6 +354,7 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                         "Parser Registered",
                         &format!("Registered parser: {}", parser_config.name),
                         log::Level::Info,
+                        false,
                     );
                 }
                 Err(e) => {
@@ -356,6 +362,7 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                         "Parser Registration Error",
                         &format!("Failed to register parser: {}", e),
                         log::Level::Error,
+                        false,
                     );
                 }
             },
@@ -367,6 +374,7 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                         parser_config.path, e
                     ),
                     log::Level::Error,
+                    false,
                 );
             }
         },
@@ -375,6 +383,7 @@ pub fn add_custom_parser(app: AppHandle, parser_config: ParserConfig) {
                 "Parser Error",
                 &format!("Unsupported parser type: {}", parser_config.r#type),
                 log::Level::Warn,
+                false,
             );
         }
     }

@@ -138,6 +138,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
                 "Bookmark Inserted",
                 "Bookmark inserted successfully",
                 log::Level::Info,
+                false,
             );
         }
         Err(e) => {
@@ -145,6 +146,7 @@ pub fn bookmark_insert(app: AppHandle, bookmark: BookmarkNew, tags: Vec<String>)
                 "Database Error",
                 &format!("Error inserting bookmark: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
@@ -196,6 +198,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
                 "Bookmark Updated",
                 "Bookmark updated successfully",
                 log::Level::Info,
+                false,
             );
         }
         Err(e) => {
@@ -203,6 +206,7 @@ pub fn bookmark_update(app: AppHandle, index: i32, bookmark: BookmarkNew, tags: 
                 "Database Error",
                 &format!("Error updating bookmark: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
@@ -231,6 +235,7 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
                 "Bookmark Deleted",
                 "Bookmark deleted successfully",
                 log::Level::Info,
+                false,
             );
         }
         Err(e) => {
@@ -238,6 +243,7 @@ pub fn bookmark_delete(app: AppHandle, delete_id: i32) {
                 "Database Error",
                 &format!("Error deleting bookmarks: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
@@ -293,6 +299,7 @@ pub fn tags_update(
                 "Bookmarks Updated",
                 "Tags updated successfully",
                 log::Level::Info,
+                false,
             );
         }
         Err(e) => {
@@ -300,6 +307,7 @@ pub fn tags_update(
                 "Database Error",
                 &format!("Error updating bookmarks: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
@@ -328,6 +336,7 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
                 "Bookmarks Deleted",
                 "Bookmarks deleted successfully",
                 log::Level::Info,
+                false,
             );
         }
         Err(e) => {
@@ -335,6 +344,7 @@ pub fn batch_delete(app: AppHandle, ids: Vec<i32>) {
                 "Database Error",
                 &format!("Error deleting bookmarks: {}", e),
                 log::Level::Error,
+                true,
             );
         }
     }
