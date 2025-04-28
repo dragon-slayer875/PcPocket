@@ -31,7 +31,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["deb", "rpm", "appimage", "nsis", "app", "dmg"],
     "icon": [
       "icons/icon32.png",
       "icons/icon128.png",
