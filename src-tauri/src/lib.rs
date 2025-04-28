@@ -5,7 +5,7 @@ use tauri::async_runtime::spawn;
 use tauri::Manager;
 use time::OffsetDateTime;
 use url::Url;
-use utils::watch_config;
+use utils::{capture_ctrl_c, watch_config};
 
 mod commands;
 mod custom_parsers;
@@ -100,6 +100,7 @@ pub fn run() {
             init_logger(log_path.to_str().unwrap(), false);
             spawn(setup::setup_tasks(app.handle().clone()));
             let config_path = app.path().app_config_dir().unwrap().join("config.json");
+            spawn(capture_ctrl_c(app.handle().clone()));
             spawn(watch_config(config_path, app.handle().clone()));
             Ok(())
         })

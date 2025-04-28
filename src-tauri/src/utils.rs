@@ -3,6 +3,7 @@ use crate::custom_parsers::{BrowserJsonParser, Parser, ParserRegistry, PythonPar
 use crate::structs::{AppData, AppDataStorage, ParserConfig};
 use crate::tray::EXIT_FLAG;
 use config::{Config, File};
+use ctrlc;
 use log::{debug, trace, warn};
 use notify::RecursiveMode;
 use notify_debouncer_full::new_debouncer;
@@ -11,6 +12,7 @@ use std::fs::OpenOptions;
 use std::io::{self, Write};
 use std::path::PathBuf;
 use std::sync::atomic::AtomicBool;
+use std::sync::mpsc::channel;
 use std::sync::Mutex;
 use std::{path::Path, time::Duration};
 use tauri::AppHandle;
@@ -275,4 +277,58 @@ pub fn exit_app(app_handle: &AppHandle) {
     EXIT_FLAG.store(true, std::sync::atomic::Ordering::Relaxed);
     write_app_data_to_storage(app_handle).unwrap();
     app_handle.exit(0);
+}
+
+pub async fn capture_ctrl_c(app_handle: AppHandle) {
+    let (tx, rx) = channel();
+
+    match ctrlc::set_handler(move || match tx.send(()) {
+        Ok(_) => {
+            broadcast_info(
+                "Ctrl-C Detected",
+                "Ctrl-C detected. Exiting application.",
+                log::Level::Info,
+                false,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Ctrl-C Error",
+                &format!("Failed to send Ctrl-C signal: {}", e),
+                log::Level::Error,
+                false,
+            );
+        }
+    }) {
+        Ok(_) => {
+            broadcast_info(
+                "Ctrl-C Handler",
+                "Ctrl-C handler set successfully.",
+                log::Level::Info,
+                false,
+            );
+        }
+        Err(e) => {
+            broadcast_info(
+                "Ctrl-C Error",
+                &format!("Failed to set Ctrl-C handler: {}", e),
+                log::Level::Error,
+                false,
+            );
+        }
+    }
+
+    match rx.recv() {
+        Ok(_) => {
+            exit_app(&app_handle);
+        }
+        Err(e) => {
+            broadcast_info(
+                "Ctrl-C Error",
+                &format!("Failed to receive Ctrl-C signal: {}", e),
+                log::Level::Error,
+                false,
+            );
+        }
+    }
 }
