@@ -36,12 +36,6 @@ impl From<io::Error> for ParserError {
     }
 }
 
-impl From<mlua::Error> for ParserError {
-    fn from(err: mlua::Error) -> Self {
-        ParserError::LuaError(err.to_string())
-    }
-}
-
 impl From<pyo3::PyErr> for ParserError {
     fn from(err: pyo3::PyErr) -> Self {
         ParserError::PythonError(err.to_string())
