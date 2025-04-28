@@ -17,11 +17,12 @@ const formSchema = z.object({
   title: z.string(),
   link: z.string().url(),
   tags: z.array(z.string()),
+  created_at: z.number(),
 });
 
 export function BookmarkForm({
   setOpen,
-  data = { title: "", link: "", tags: [] },
+  data = { title: "", link: "", tags: [], created_at: new Date().getTime() },
   handleSubmit,
 }: {
   setOpen: (open: boolean) => void;

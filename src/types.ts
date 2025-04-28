@@ -34,7 +34,7 @@ export type BookmarkMutationItem = {
   title: string;
   link: string;
   icon_link?: string;
-  created_at?: Date;
+  created_at?: number;
   tags?: string[];
 };
 

@@ -209,7 +209,7 @@ export function DataTable() {
   return (
     <div className="flex flex-col h-full gap-4">
       <div className="flex justify-between">
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-1">
           <AutocompleteInput
             suggestions={tags}
             inputValue={filterInput}
@@ -220,14 +220,16 @@ export function DataTable() {
             }
             setSelectedSuggestions={setTagsFilter}
           />
-          <Button
-            variant="ghost"
-            onClick={() => {
-              setColumnFilters([]);
-            }}
-          >
-            Clear filters
-          </Button>
+          {columnFilters && columnFilters.length > 0 && (
+            <Button
+              variant="ghost"
+              onClick={() => {
+                setColumnFilters([]);
+              }}
+            >
+              Clear filters
+            </Button>
+          )}
         </div>
         <div className="flex gap-2">
           <ImportWizard
@@ -299,6 +301,16 @@ export function DataTable() {
               </TableRow>
             ))}
           </TableHeader>
+          {table.getRowModel().rows.length === 0 && (
+            <TableRow>
+              <TableCell
+                className="text-muted-foreground flex items-center justify-center"
+                colSpan={table.getAllColumns().length}
+              >
+                No bookmarks found
+              </TableCell>
+            </TableRow>
+          )}
           <TableBodyVirtual
             table={table}
             tableContainerRef={tableContainerRef}
