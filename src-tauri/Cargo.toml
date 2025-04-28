@@ -55,6 +55,9 @@ strip = true # Ensures debug symbols are removed.
 tauri-plugin-autostart = "2"
 tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
 
+[target.'cfg(target_os = "windows")'.dependencies]
+libsqlite3-sys = { version = "0.33.0", features = ["bundled"] }
+
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.25.0"
 
