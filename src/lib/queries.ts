@@ -87,7 +87,7 @@ export function useGetBookmarksQuery(
       return response as BookmarkGetQueryResponse;
     },
     placeholderData: keepPreviousData,
-    staleTime: 5000,
+    gcTime: 0,
   });
 }
 

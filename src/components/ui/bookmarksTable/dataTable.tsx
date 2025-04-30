@@ -35,6 +35,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+
+import {
   useEffect,
   useRef,
   useState,
@@ -78,7 +84,7 @@ export function DataTable() {
   const [openImport, setOpenImport] = useState(false);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
     id: false,
-    created_at: false,
+    tags: false,
   });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const searchRef = useRef<HTMLInputElement>(null);
@@ -151,7 +157,25 @@ export function DataTable() {
     [table],
   );
 
-  const setTagsFilter = useCallback(
+  const handleSelectAllShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      const activeElement = document.activeElement as HTMLElement | null;
+      if (event.ctrlKey && event.key === "a") {
+        if (
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          (activeElement && activeElement.isContentEditable)
+        ) {
+          return;
+        }
+        event.preventDefault();
+        table.toggleAllRowsSelected();
+      }
+    },
+    [table],
+  );
+
+  const toggleTagsFilter = useCallback(
     (tags: string[]) => {
       if (!tags || tags.length === 0) {
         setColumnFilters((old) => {
@@ -167,12 +191,14 @@ export function DataTable() {
   useEffect(() => {
     document.addEventListener("keydown", handleFindShortcut);
     document.addEventListener("keydown", handleCopyShortcut);
+    document.addEventListener("keydown", handleSelectAllShortcut);
 
     return () => {
       document.removeEventListener("keydown", handleFindShortcut);
       document.removeEventListener("keydown", handleCopyShortcut);
+      document.removeEventListener("keydown", handleSelectAllShortcut);
     };
-  }, [handleFindShortcut, handleCopyShortcut]);
+  }, [handleFindShortcut, handleCopyShortcut, handleSelectAllShortcut]);
 
   useEffect(() => {
     if (!debouncedFilterInput) {
@@ -218,7 +244,7 @@ export function DataTable() {
             selectedSuggestions={
               (table.getColumn("tags")?.getFilterValue() as string[]) || []
             }
-            setSelectedSuggestions={setTagsFilter}
+            setSelectedSuggestions={toggleTagsFilter}
           />
           {columnFilters && columnFilters.length > 0 && (
             <Button
@@ -271,57 +297,80 @@ export function DataTable() {
           </DropdownMenu>
         </div>
       </div>
-      <div
-        ref={tableContainerRef}
-        className="rounded-md border overflow-auto justify-between relative flex-1"
-      >
-        <Table className="relative grid">
-          <TableHeader className="sticky grid top-0 z-1">
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow
-                className="bg-secondary flex w-full"
-                key={headerGroup.id}
-              >
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead
-                      key={header.id}
-                      className="flex items-center"
-                      style={{ width: header.getSize() }}
+      <div className="flex-1 overflow-auto">
+        <ResizablePanelGroup direction="horizontal">
+          <ResizablePanel
+            defaultSize={20}
+            collapsible
+            className="flex flex-col flex-1 gap-4"
+          >
+            <TagBadgesList
+              tags={tags || []}
+              selectedTags={
+                (table.getColumn("tags")?.getFilterValue() as string[]) || []
+              }
+              onToggleTag={toggleTagsFilter}
+            />
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel className="flex flex-col flex-1 gap-4">
+            <div
+              ref={tableContainerRef}
+              className="ml-4 rounded-md border overflow-auto relative flex-1"
+            >
+              <Table className="relative grid flex-1">
+                <TableHeader className="sticky grid top-0 z-1">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow
+                      className="bg-secondary flex w-full"
+                      key={headerGroup.id}
                     >
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          {table.getRowModel().rows.length === 0 && (
-            <TableRow>
-              <TableCell
-                className="text-muted-foreground flex items-center justify-center"
-                colSpan={table.getAllColumns().length}
-              >
-                No bookmarks found
-              </TableCell>
-            </TableRow>
-          )}
-          <TableBodyVirtual
-            table={table}
-            tableContainerRef={tableContainerRef}
-          />
-        </Table>
+                      {headerGroup.headers.map((header) => {
+                        return (
+                          <TableHead
+                            key={header.id}
+                            className="flex items-center"
+                            style={{ width: header.getSize() }}
+                          >
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                          </TableHead>
+                        );
+                      })}
+                    </TableRow>
+                  ))}
+                </TableHeader>
+                {table.getRowModel().rows.length === 0 && (
+                  <TableBody>
+                    <TableRow>
+                      <TableCell
+                        className="text-muted-foreground flex items-center justify-center"
+                        colSpan={table.getAllColumns().length}
+                      >
+                        No bookmarks found
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                )}
+                <TableBodyVirtual
+                  table={table}
+                  tableContainerRef={tableContainerRef}
+                />
+              </Table>
+            </div>
+            More details of currently selected row
+            <DataTablePagination
+              table={table}
+              setAllRows={setAllBookmarks}
+              allRows={allBookmarks}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
-      <DataTablePagination
-        table={table}
-        setAllRows={setAllBookmarks}
-        allRows={allBookmarks}
-      />
     </div>
   );
 }
@@ -349,7 +398,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+        navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
@@ -420,5 +469,46 @@ function TableBodyVirtualRow({
         );
       })}
     </TableRow>
+  );
+}
+
+function TagBadgesList({
+  tags,
+  selectedTags,
+  onToggleTag,
+}: {
+  tags: string[];
+  selectedTags: string[];
+  onToggleTag: (tag: string[]) => void;
+}) {
+  if (!tags || tags.length === 0) {
+    return <div className="text-muted-foreground">No tags</div>;
+  }
+
+  return (
+    <>
+      <h3 className="text-muted-foreground">Tags</h3>
+      <div className="px-2 py-1 flex flex-col gap-3 overflow-auto">
+        {tags.map((tag) => (
+          <Button
+            key={tag}
+            size="sm"
+            variant="outline"
+            className={`
+            cursor-pointer transition-all h-7 w-min rounded-full hover:bg-accent-foreground/10
+            ${selectedTags.includes(tag) ? "ring-primary ring-2" : ""}`}
+            onClick={() => {
+              if (selectedTags.includes(tag)) {
+                onToggleTag(selectedTags.filter((t) => t !== tag));
+              } else {
+                onToggleTag([...selectedTags, tag]);
+              }
+            }}
+          >
+            {tag}
+          </Button>
+        ))}
+      </div>
+    </>
   );
 }

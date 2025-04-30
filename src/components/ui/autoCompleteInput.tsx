@@ -102,7 +102,12 @@ export default function AutocompleteInput({
         inputSuggestions ? inputSuggestions[activeIndex] : "",
       );
     } else if (e.key === "Escape") {
-      setIsOpen(false);
+      if (isOpen) {
+        setIsOpen(false);
+      }
+      if (!isOpen) {
+        inputRef?.current?.blur();
+      }
     }
   };
 
@@ -130,17 +135,15 @@ export default function AutocompleteInput({
               key={index}
               ref={index === activeIndex ? activeItemRef : null}
               onClick={() => handleSelectSuggestion(suggestion)}
-              className={`text-sm m-1.5 px-4 py-2 rounded-sm flex items-center cursor-pointer hover:bg-accent ${
-                index === activeIndex ? "bg-accent" : ""
-              }`}
+              className={`text-sm m-1.5 px-4 py-2 rounded-sm flex items-center cursor-pointer hover:bg-accent ${index === activeIndex ? "bg-accent" : ""
+                }`}
             >
               <span>{suggestion}</span>
               <Check
-                className={`ml-auto h-4 w-4 ${
-                  selectedSuggestions?.includes(suggestion)
+                className={`ml-auto h-4 w-4 ${selectedSuggestions?.includes(suggestion)
                     ? "text-primary"
                     : "hidden"
-                }`}
+                  }`}
               />
             </li>
           ))}
