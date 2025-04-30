@@ -55,11 +55,19 @@ import { toast } from "sonner";
 import { Import } from "lucide-react";
 import { DataTablePagination } from "./tablePagination";
 import { ImportWizard } from "@/components/importWizard";
-import { useGetAllTagsQuery, useGetBookmarksQuery } from "@/lib/queries";
+import {
+  // useDeleteBookmarkMutation,
+  useGetAllTagsQuery,
+  useGetBookmarksQuery,
+  // useUpdateBookmarkMutation,
+} from "@/lib/queries";
 import { columns } from "./columns";
 import { BookmarkQueryItem } from "@/types";
 import { useDebounce } from "@/lib/utils";
 import AutocompleteInput from "../autoCompleteInput";
+// import { DrawerDialog } from "../drawerDialog";
+// import { CopyButton } from "../copyButton";
+// import { BookmarkForm } from "@/components/bookmarkForm";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -450,9 +458,12 @@ function TableBodyVirtualRow({
       data-index={virtualRow.index} //needed for dynamic row height measurement
       ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
       key={row.id}
-      className="flex absolute w-full"
+      className={`flex absolute w-full ${row.getIsSelected() ? "bg-accent/75" : ""}`}
       style={{
         transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
+      }}
+      onClick={() => {
+        row.toggleSelected();
       }}
     >
       {row.getVisibleCells().map((cell) => {
@@ -495,7 +506,7 @@ function TagBadgesList({
             size="sm"
             variant="outline"
             className={`
-            cursor-pointer transition-all h-7 w-min rounded-full hover:bg-accent-foreground/10
+            cursor-pointer transition-all h-7 w-min rounded-lg hover:bg-accent-foreground/10
             ${selectedTags.includes(tag) ? "ring-primary ring-2" : ""}`}
             onClick={() => {
               if (selectedTags.includes(tag)) {
@@ -512,3 +523,67 @@ function TagBadgesList({
     </>
   );
 }
+
+// function Actions({ row }: { row: Row<BookmarkQueryItem> }) {
+//   const [open, setOpen] = useState(false);
+//   const [openDelete, setOpenDelete] = useState(false);
+//   const updateBookmark = useUpdateBookmarkMutation();
+//   const deleteBookmark = useDeleteBookmarkMutation();
+//   return (
+//     <div className="flex flex-1 justify-center">
+//       <CopyButton text={row.getValue("link") as string} />
+//       <DrawerDialog
+//         open={open}
+//         setOpen={setOpen}
+//         trigger={
+//           <Button variant={"ghost"}>
+//             <Edit />
+//           </Button>
+//         }
+//         content={
+//           <BookmarkForm
+//             handleSubmit={updateBookmark.mutate}
+//             setOpen={setOpen}
+//             data={{
+//               id: row.getValue("id") as number,
+//               title: row.getValue("title") as string,
+//               link: row.getValue("link") as string,
+//               tags: row.getValue("tags") as string[],
+//               created_at: row.getValue("created_at") as number,
+//             }}
+//           />
+//         }
+//         description="Update stored bookmark information."
+//         title="Edit Bookmark"
+//       />
+//       <DrawerDialog
+//         open={openDelete}
+//         setOpen={setOpenDelete}
+//         trigger={
+//           <Button
+//             variant={"ghost"}
+//             className="text-destructive hover:text-destructive"
+//           >
+//             <Trash />
+//           </Button>
+//         }
+//         content={
+//           <div className="flex flex-col gap-4">
+//             <div>Are you sure you want to delete this bookmark?</div>
+//             <Button
+//               size={"lg"}
+//               variant={"destructive"}
+//               onClick={async function() {
+//                 await deleteBookmark.mutateAsync(row.getValue("id") as number);
+//                 setOpenDelete(false);
+//               }}
+//             >
+//               Yes
+//             </Button>
+//           </div>
+//         }
+//         title="Delete Bookmark"
+//       />
+//     </div>
+//   );
+// }

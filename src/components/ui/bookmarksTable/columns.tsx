@@ -13,33 +13,8 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 //   useUpdateTagsMutation,
 // } from "@/lib/queries";
 // import { DrawerDialog } from "../drawerDialog";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export const columns: ColumnDef<BookmarkQueryItem>[] = [
-  {
-    id: "select",
-    size: 50,
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="mx-2 border-foreground"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-        className="mx-2 border-foreground"
-      />
-    ),
-    enableSorting: false,
-  },
   {
     accessorKey: "id",
     size: 60,
@@ -52,13 +27,13 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const iconLink = row.getValue("icon_link") as string;
       if (!iconLink) {
-        return <Globe className="h-7 w-7 mr-2.5" />;
+        return <Globe className="h-7 w-7 mx-2.5" />;
       }
       return (
         <img
           src={iconLink}
           alt="icon"
-          className="h-7 w-7 mr-2.5"
+          className="h-7 w-7 mx-2.5"
           onError={(e) => {
             e.currentTarget.src =
               "https://www.google.com/s2/favicons?domain=" +
@@ -140,69 +115,6 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
   //     );
   //   },
   //   cell: ({ row }) => {
-  //     const [open, setOpen] = useState(false);
-  //     const [openDelete, setOpenDelete] = useState(false);
-  //     const updateBookmark = useUpdateBookmarkMutation();
-  //     const deleteBookmark = useDeleteBookmarkMutation();
-  //     return (
-  //       <div className="flex flex-1 justify-center">
-  //         <CopyButton text={row.getValue("link") as string} />
-  //         <DrawerDialog
-  //           open={open}
-  //           setOpen={setOpen}
-  //           trigger={
-  //             <Button variant={"ghost"}>
-  //               <Edit />
-  //             </Button>
-  //           }
-  //           content={
-  //             <BookmarkForm
-  //               handleSubmit={updateBookmark.mutate}
-  //               setOpen={setOpen}
-  //               data={{
-  //                 id: row.getValue("id") as number,
-  //                 title: row.getValue("title") as string,
-  //                 link: row.getValue("link") as string,
-  //                 tags: row.getValue("tags") as string[],
-  //                 created_at: row.getValue("created_at") as number,
-  //               }}
-  //             />
-  //           }
-  //           description="Update stored bookmark information."
-  //           title="Edit Bookmark"
-  //         />
-  //         <DrawerDialog
-  //           open={openDelete}
-  //           setOpen={setOpenDelete}
-  //           trigger={
-  //             <Button
-  //               variant={"ghost"}
-  //               className="text-destructive hover:text-destructive"
-  //             >
-  //               <Trash />
-  //             </Button>
-  //           }
-  //           content={
-  //             <div className="flex flex-col gap-4">
-  //               <div>Are you sure you want to delete this bookmark?</div>
-  //               <Button
-  //                 size={"lg"}
-  //                 variant={"destructive"}
-  //                 onClick={async function () {
-  //                   await deleteBookmark.mutateAsync(
-  //                     row.getValue("id") as number,
-  //                   );
-  //                   setOpenDelete(false);
-  //                 }}
-  //               >
-  //                 Yes
-  //               </Button>
-  //             </div>
-  //           }
-  //           title="Delete Bookmark"
-  //         />
-  //       </div>
-  //     );
   //   },
   // },
   {
@@ -214,15 +126,14 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
     cell: ({ row }) => {
       const link = row.getValue("link") as string;
       return (
-        <Button
-          variant={"link"}
-          className="inline-block flex-1 overflow-hidden h-max overflow-ellipsis text-left justify-start select-text cursor-pointer"
-          onClick={function () {
+        <span
+          className="text-primary underline-offset-4 hover:underline active:underline inline-block flex-1 overflow-hidden overflow-ellipsis select-text cursor-pointer"
+          onClick={function() {
             openUrl(link);
           }}
         >
           {link}
-        </Button>
+        </span>
       );
     },
   },
