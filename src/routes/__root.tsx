@@ -3,7 +3,6 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/appSidebar";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 export const Route = createRootRouteWithContext<{
   queryClient: QueryClient;
@@ -17,7 +16,6 @@ function RootComponent() {
       <SidebarProvider defaultOpen={false}>
         <AppSidebar />
         <Outlet />
-        <TanStackRouterDevtools />
         <Toaster />
       </SidebarProvider>
     </div>

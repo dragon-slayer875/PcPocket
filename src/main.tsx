@@ -5,10 +5,7 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "@/routeTree.gen";
 
 import { ThemeProvider } from "./components/themeProvider";
-import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import { createIDBPersister } from "./lib/iDbPersister";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -25,8 +22,6 @@ const router = createRouter({
   defaultPreloadStaleTime: 0,
   scrollRestoration: true,
 });
-
-const persister = createIDBPersister();
 
 declare module "@tanstack/react-router" {
   interface Register {
@@ -45,13 +40,9 @@ if (!rootElement.innerHTML) {
         themeStorageKey="vite-ui-theme"
         modeStorageKey="vite-ui-mode"
       >
-        <PersistQueryClientProvider
-          client={queryClient}
-          persistOptions={{ persister }}
-        >
+        <QueryClientProvider client={queryClient}>
           <RouterProvider router={router} />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </PersistQueryClientProvider>
+        </QueryClientProvider>
       </ThemeProvider>
     </StrictMode>,
   );
