@@ -47,27 +47,34 @@ import {
   useCallback,
   RefObject,
   useMemo,
+  MouseEvent,
 } from "react";
 import { Button } from "../button";
 import { AddBookmarkDrawerDialog } from "../addBookmark";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
-import { Import } from "lucide-react";
+import { Edit, Import, Trash } from "lucide-react";
 import { DataTablePagination } from "./tablePagination";
 import { ImportWizard } from "@/components/importWizard";
 import {
-  // useDeleteBookmarkMutation,
+  useDeleteBookmarkMutation,
+  useDeleteMultipleBookmarksMutation,
   useGetAllTagsQuery,
   useGetBookmarksQuery,
-  // useUpdateBookmarkMutation,
+  useUpdateBookmarkMutation,
+  useUpdateTagsMutation,
 } from "@/lib/queries";
 import { columns } from "./columns";
 import { BookmarkQueryItem } from "@/types";
 import { useDebounce } from "@/lib/utils";
 import AutocompleteInput from "../autoCompleteInput";
-// import { DrawerDialog } from "../drawerDialog";
-// import { CopyButton } from "../copyButton";
-// import { BookmarkForm } from "@/components/bookmarkForm";
+import { openUrl } from "@tauri-apps/plugin-opener";
+import { Badge } from "../badge";
+import { DrawerDialog } from "../drawerDialog";
+import { CopyButton } from "../copyButton";
+import { BookmarkForm } from "@/components/bookmarkForm";
+import { Separator } from "../separator";
+import { Input } from "../input";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -168,7 +175,7 @@ export function DataTable() {
   const handleSelectAllShortcut = useCallback(
     (event: KeyboardEvent) => {
       const activeElement = document.activeElement as HTMLElement | null;
-      if (event.ctrlKey && event.key === "a") {
+      if (event.ctrlKey && event.key === "a" && !event.altKey) {
         if (
           activeElement instanceof HTMLInputElement ||
           activeElement instanceof HTMLTextAreaElement ||
@@ -178,6 +185,30 @@ export function DataTable() {
         }
         event.preventDefault();
         table.toggleAllRowsSelected();
+      }
+    },
+    [table],
+  );
+
+  const handleOpenShortcut = useCallback(
+    (event: KeyboardEvent) => {
+      const activeElement = document.activeElement as HTMLElement | null;
+      if (event.key === "Enter") {
+        if (
+          activeElement instanceof HTMLInputElement ||
+          activeElement instanceof HTMLTextAreaElement ||
+          activeElement instanceof HTMLButtonElement ||
+          (activeElement && activeElement.isContentEditable)
+        ) {
+          return;
+        }
+        event.preventDefault();
+        const selectedRows = table.getSelectedRowModel().rows;
+        if (selectedRows.length === 1) {
+          const selectedRow = selectedRows[0];
+          const link = selectedRow.getValue("link") as string;
+          openUrl(link);
+        }
       }
     },
     [table],
@@ -200,13 +231,20 @@ export function DataTable() {
     document.addEventListener("keydown", handleFindShortcut);
     document.addEventListener("keydown", handleCopyShortcut);
     document.addEventListener("keydown", handleSelectAllShortcut);
+    document.addEventListener("keydown", handleOpenShortcut);
 
     return () => {
       document.removeEventListener("keydown", handleFindShortcut);
       document.removeEventListener("keydown", handleCopyShortcut);
       document.removeEventListener("keydown", handleSelectAllShortcut);
+      document.removeEventListener("keydown", handleOpenShortcut);
     };
-  }, [handleFindShortcut, handleCopyShortcut, handleSelectAllShortcut]);
+  }, [
+    handleFindShortcut,
+    handleCopyShortcut,
+    handleSelectAllShortcut,
+    handleOpenShortcut,
+  ]);
 
   useEffect(() => {
     if (!debouncedFilterInput) {
@@ -220,25 +258,16 @@ export function DataTable() {
     table.getColumn("title")?.setFilterValue(debouncedFilterInput);
   }, [debouncedFilterInput]);
 
-  // Optimize your second useEffect to avoid unnecessary operations
   useEffect(() => {
-    // Only run this if filtering is active
-    const filteredRowsLength = table.getFilteredRowModel().rows.length;
-    const dataLength = data?.bookmarks?.length || 0;
-
-    if (filteredRowsLength > 0 && filteredRowsLength < dataLength) {
-      const firstRowId = table.getFilteredRowModel().rows[0].id;
-      // Only update if selection needs to change
-      if (!rowSelection[firstRowId]) {
-        setRowSelection({ [firstRowId]: true });
-      }
-    } else if (
-      Object.keys(rowSelection).length === 1 &&
-      table.getSelectedRowModel().rows.length === 1
-    ) {
-      setRowSelection({});
-    }
-  }, [data?.bookmarks.length, table.getFilteredRowModel().rows.length]);
+    const firstRow = table.getRowModel().rows[0];
+    setRowSelection(
+      firstRow
+        ? {
+          [firstRow.id]: true,
+        }
+        : {},
+    );
+  }, [columnFilters]);
 
   return (
     <div className="flex flex-col h-full gap-4">
@@ -266,6 +295,15 @@ export function DataTable() {
           )}
         </div>
         <div className="flex gap-2">
+          <Actions
+            rows={table.getSelectedRowModel().rows}
+            tagFilters={columnFilters.reduce((acc: string[], filter) => {
+              if (filter.id === "tags") {
+                return filter.value as string[];
+              }
+              return acc;
+            }, [])}
+          />
           <ImportWizard
             open={openImport}
             setOpen={setOpenImport}
@@ -321,10 +359,10 @@ export function DataTable() {
             />
           </ResizablePanel>
           <ResizableHandle withHandle />
-          <ResizablePanel className="flex flex-col flex-1 gap-4">
+          <ResizablePanel className="flex flex-col flex-1 gap-4 pl-4">
             <div
               ref={tableContainerRef}
-              className="ml-4 rounded-md border overflow-auto relative flex-1"
+              className="rounded-md border overflow-auto relative flex-1"
             >
               <Table className="relative grid flex-1">
                 <TableHeader className="sticky grid top-0 z-1">
@@ -370,7 +408,7 @@ export function DataTable() {
                 />
               </Table>
             </div>
-            More details of currently selected row
+            <CurrentSelectionDetails rows={table.getSelectedRowModel().rows} />
             <DataTablePagination
               table={table}
               setAllRows={setAllBookmarks}
@@ -389,6 +427,7 @@ interface TableBodyVirtualProps {
 }
 
 function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
+  const [dragging, setDragging] = useState(false);
   const { rows } = table.getRowModel();
 
   useEffect(() => {
@@ -420,6 +459,37 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     initialOffset: 0,
   });
 
+  const handleSelect = useCallback(
+    (event: MouseEvent, row: Row<BookmarkQueryItem>) => {
+      // For mousedown events (start of drag)
+      if (event.type === "mousedown") {
+        if (!event.shiftKey) {
+          table.setRowSelection({});
+        }
+        row.toggleSelected();
+        setDragging(true);
+      }
+
+      // For mouseup events (end of drag)
+      else if (event.type === "mouseup") {
+        setDragging(false);
+      }
+
+      // For mouseenter events (during drag)
+      else if (event.type === "mouseenter") {
+        if (dragging) {
+          row.toggleSelected(true); // Force select during drag
+        }
+      }
+
+      // Prevent default browser behavior where appropriate
+      if (["mousedown", "click"].includes(event.type)) {
+        event.preventDefault();
+      }
+    },
+    [dragging, table, setDragging],
+  );
+
   return (
     <TableBody
       className="grid relative"
@@ -435,6 +505,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
             row={row}
             virtualRow={virtualRow}
             rowVirtualizer={rowVirtualizer}
+            handleSelect={handleSelect}
           />
         );
       })}
@@ -452,18 +523,27 @@ function TableBodyVirtualRow({
   row,
   virtualRow,
   rowVirtualizer,
-}: TableBodyVirtualRowProps) {
+  handleSelect,
+}: TableBodyVirtualRowProps & {
+  handleSelect: (event: MouseEvent, row: Row<BookmarkQueryItem>) => void;
+}) {
   return (
     <TableRow
       data-index={virtualRow.index} //needed for dynamic row height measurement
       ref={(node) => rowVirtualizer.measureElement(node)} //measure dynamic row height
       key={row.id}
-      className={`flex absolute w-full ${row.getIsSelected() ? "bg-accent/75" : ""}`}
+      className={`flex absolute w-full ${row.getIsSelected() ? "bg-accent-foreground/10" : ""}`}
       style={{
         transform: `translateY(${virtualRow.start}px)`, //this should always be a `style` as it changes on scroll
       }}
-      onClick={() => {
-        row.toggleSelected();
+      onMouseEnter={(event) => {
+        handleSelect(event, row);
+      }}
+      onMouseDown={(event) => {
+        handleSelect(event, row);
+      }}
+      onMouseUp={(event) => {
+        handleSelect(event, row);
       }}
     >
       {row.getVisibleCells().map((cell) => {
@@ -507,7 +587,7 @@ function TagBadgesList({
             variant="outline"
             className={`
             cursor-pointer transition-all h-7 w-min rounded-lg hover:bg-accent-foreground/10
-            ${selectedTags.includes(tag) ? "ring-primary ring-2" : ""}`}
+            ${selectedTags.includes(tag) ? "ring-primary ring-2 ml-1" : ""}`}
             onClick={() => {
               if (selectedTags.includes(tag)) {
                 onToggleTag(selectedTags.filter((t) => t !== tag));
@@ -524,66 +604,251 @@ function TagBadgesList({
   );
 }
 
-// function Actions({ row }: { row: Row<BookmarkQueryItem> }) {
-//   const [open, setOpen] = useState(false);
-//   const [openDelete, setOpenDelete] = useState(false);
-//   const updateBookmark = useUpdateBookmarkMutation();
-//   const deleteBookmark = useDeleteBookmarkMutation();
-//   return (
-//     <div className="flex flex-1 justify-center">
-//       <CopyButton text={row.getValue("link") as string} />
-//       <DrawerDialog
-//         open={open}
-//         setOpen={setOpen}
-//         trigger={
-//           <Button variant={"ghost"}>
-//             <Edit />
-//           </Button>
-//         }
-//         content={
-//           <BookmarkForm
-//             handleSubmit={updateBookmark.mutate}
-//             setOpen={setOpen}
-//             data={{
-//               id: row.getValue("id") as number,
-//               title: row.getValue("title") as string,
-//               link: row.getValue("link") as string,
-//               tags: row.getValue("tags") as string[],
-//               created_at: row.getValue("created_at") as number,
-//             }}
-//           />
-//         }
-//         description="Update stored bookmark information."
-//         title="Edit Bookmark"
-//       />
-//       <DrawerDialog
-//         open={openDelete}
-//         setOpen={setOpenDelete}
-//         trigger={
-//           <Button
-//             variant={"ghost"}
-//             className="text-destructive hover:text-destructive"
-//           >
-//             <Trash />
-//           </Button>
-//         }
-//         content={
-//           <div className="flex flex-col gap-4">
-//             <div>Are you sure you want to delete this bookmark?</div>
-//             <Button
-//               size={"lg"}
-//               variant={"destructive"}
-//               onClick={async function() {
-//                 await deleteBookmark.mutateAsync(row.getValue("id") as number);
-//                 setOpenDelete(false);
-//               }}
-//             >
-//               Yes
-//             </Button>
-//           </div>
-//         }
-//         title="Delete Bookmark"
-//       />
-//     </div>
-//   );
-// }
+function Actions({
+  rows,
+  tagFilters,
+}: {
+  rows: Row<BookmarkQueryItem>[];
+  tagFilters: string[];
+}) {
+  const updateTags = useUpdateTagsMutation();
+  const [tagsInputValue, setTagsInputValue] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [tagsToAdd, setTagsToAdd] = useState<string[]>([]);
+  const [tagsToDelete, setTagsToDelete] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const updateBookmark = useUpdateBookmarkMutation();
+  const deleteBookmark = useDeleteBookmarkMutation();
+  const deleteMultipleBookmarks = useDeleteMultipleBookmarksMutation();
+
+  useEffect(() => {
+    setTagsToAdd([]);
+    setTagsToDelete([]);
+    setTagsInputValue("");
+    setSelectedTags(tagFilters.length > 0 ? tagFilters : []);
+  }, [rows]);
+
+  function handleDeleteTag(tag: string) {
+    if (!tagsToDelete.includes(tag)) {
+      setSelectedTags((prev) => prev.filter((t) => t !== tag));
+      setTagsToDelete((prev) => [...prev, tag]);
+    } else {
+      setSelectedTags((prev) => [...prev, tag]);
+      setTagsToDelete((prev) => prev.filter((t) => t !== tag));
+    }
+  }
+
+  if (rows.length === 0) {
+    return (
+      <div className="flex flex-1 justify-center">
+        <CopyButton text={""} disabled />
+        <Button variant={"ghost"} disabled>
+          <Edit />
+        </Button>
+        <Button
+          variant={"ghost"}
+          disabled
+          className="text-destructive hover:text-destructive"
+        >
+          <Trash />
+        </Button>
+      </div>
+    );
+  }
+
+  if (rows?.length === 1) {
+    const row = rows[0];
+    return (
+      <div className="flex flex-1 justify-center">
+        <CopyButton text={row.getValue("link")} />
+        <DrawerDialog
+          open={open}
+          setOpen={setOpen}
+          trigger={
+            <Button variant={"ghost"}>
+              <Edit />
+            </Button>
+          }
+          content={
+            <BookmarkForm
+              handleSubmit={updateBookmark.mutate}
+              setOpen={setOpen}
+              data={{
+                id: row.getValue("id") as number,
+                title: row.getValue("title") as string,
+                link: row.getValue("link") as string,
+                tags: row.getValue("tags") as string[],
+                created_at: row.getValue("created_at") as number,
+              }}
+            />
+          }
+          description="Update stored bookmark information."
+          title="Edit Bookmark"
+        />
+        <DrawerDialog
+          open={openDelete}
+          setOpen={setOpenDelete}
+          trigger={
+            <Button
+              variant={"ghost"}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash />
+            </Button>
+          }
+          content={
+            <Button
+              size={"lg"}
+              variant={"destructive"}
+              onClick={async function() {
+                await deleteBookmark.mutateAsync(row.getValue("id") as number);
+                setOpenDelete(false);
+              }}
+            >
+              Yes
+            </Button>
+          }
+          description="Are you sure you want to remove this bookmark from the database?"
+          title="Delete Bookmark"
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-1 justify-center">
+      <CopyButton text={""} disabled />
+      <DrawerDialog
+        open={open}
+        setOpen={setOpen}
+        trigger={
+          <Button variant={"ghost"} disabled={selectedTags.length === 0}>
+            <Edit />
+          </Button>
+        }
+        content={
+          <>
+            <div className="flex gap-2 flex-wrap overflow-y-scroll">
+              {selectedTags?.map((tag) => (
+                <Button
+                  size={"sm"}
+                  key={tag}
+                  variant="secondary"
+                  className="cursor-pointer rounded-lg"
+                  onClick={function() {
+                    handleDeleteTag(tag);
+                  }}
+                >
+                  <span>{tag}</span>
+                </Button>
+              ))}
+            </div>
+            {tagsToDelete.length > 0 && <Separator />}
+            <div className="flex gap-2 flex-wrap">
+              {tagsToDelete.map((tag) => (
+                <Button
+                  size={"sm"}
+                  key={tag}
+                  className="cursor-pointer rounded-lg"
+                  variant={"destructive"}
+                  onClick={function() {
+                    handleDeleteTag(tag);
+                  }}
+                >
+                  <span>{tag}</span>
+                </Button>
+              ))}
+            </div>
+            <Input
+              type="text"
+              value={tagsInputValue}
+              onChange={function(e) {
+                setTagsInputValue(e.target.value);
+                const tags = e.target.value.split(",").map((tag) => tag.trim());
+                setTagsToAdd(tags);
+              }}
+              autoFocus
+              placeholder="Enter tags to add: tag1,tag2"
+            />
+            <Button
+              size={"lg"}
+              hidden={tagsToDelete.length === 0 && tagsToAdd.length === 0}
+              onClick={async function() {
+                const ids: number[] = rows.map((row) => row.getValue("id"));
+                await updateTags.mutateAsync({
+                  ids,
+                  tagsToAdd: Array.from(tagsToAdd).filter((tag) => tag),
+                  tagsToDelete: Array.from(tagsToDelete),
+                });
+                setOpen(false);
+              }}
+            >
+              Update
+            </Button>
+          </>
+        }
+        description="Edit tags of multiple entries."
+        title="Tags"
+      />
+      <DrawerDialog
+        open={openDelete}
+        setOpen={setOpenDelete}
+        trigger={
+          <Button
+            variant={"ghost"}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash />
+          </Button>
+        }
+        content={
+          <div className="flex flex-col gap-4">
+            <Button
+              size={"lg"}
+              variant={"destructive"}
+              onClick={async function() {
+                const ids: number[] = rows.map((row) => row.getValue("id"));
+                await deleteMultipleBookmarks.mutateAsync({
+                  ids: ids,
+                });
+                setOpen(false);
+              }}
+            >
+              Confirm
+            </Button>
+          </div>
+        }
+        description="Are you sure you want to remove multiple bookmarks from the database?"
+        title="Delete bookmarks"
+      />
+    </div>
+  );
+}
+
+function CurrentSelectionDetails({ rows }: { rows: Row<BookmarkQueryItem>[] }) {
+  if (rows.length === 0) {
+    return (
+      <div className="text-muted-foreground px-2">No bookmarks selected</div>
+    );
+  }
+
+  if (rows.length === 1) {
+    const row = rows[0];
+    return (
+      <div className="flex justify-between items-center px-2">
+        <div className="flex flex-col">
+          <span>{row.getValue("title") as string}</span>
+          <span className="text-muted-foreground text-sm">
+            {row.getValue("link") as string}
+          </span>
+        </div>
+        <div className="flex gap-2">
+          {(row.getValue("tags") as string[])?.map((tag) => (
+            <Badge>{tag}</Badge>
+          ))}
+        </div>
+      </div>
+    );
+  }
+}

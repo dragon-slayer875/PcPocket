@@ -6,9 +6,11 @@ import { useEffect, useState } from "react";
 export function CopyButton({
   text,
   className,
+  disabled,
 }: {
   text: string;
   className?: string;
+  disabled?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
   useEffect(() => {
@@ -28,6 +30,7 @@ export function CopyButton({
         writeText(text);
         setCopied(true);
       }}
+      disabled={disabled}
     >
       {copied ? (
         <Check className="h-4 w-4" />

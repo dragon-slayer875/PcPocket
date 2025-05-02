@@ -86,12 +86,15 @@ export default function AutocompleteInput({
   const handleKeyDown = (e: KeyboardEvent) => {
     // Handle keyboard navigation
     if (!suggestions) return;
-    if (e.key === "ArrowDown") {
+    if ((e.key === "Tab" || e.key === "ArrowDown") && isOpen) {
       e.preventDefault();
       setActiveIndex((prevIndex) =>
         prevIndex < inputSuggestions.length - 1 ? prevIndex + 1 : 0,
       );
-    } else if (e.key === "ArrowUp") {
+    } else if (
+      ((e.shiftKey && e.key === "Tab") || e.key === "ArrowUp") &&
+      isOpen
+    ) {
       e.preventDefault();
       setActiveIndex((prevIndex) =>
         prevIndex > 0 ? prevIndex - 1 : inputSuggestions.length - 1,
