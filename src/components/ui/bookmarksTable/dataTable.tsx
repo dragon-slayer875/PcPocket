@@ -629,6 +629,37 @@ function Actions({
     setSelectedTags(tagFilters.length > 0 ? tagFilters : []);
   }, [rows]);
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      const activeElement = document.activeElement as HTMLElement | null;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        (activeElement && activeElement.isContentEditable);
+
+      if (isTyping) return;
+
+      if (event.key === "Delete") {
+        if (rows.length > 0) {
+          event.preventDefault();
+          setOpenDelete(true);
+        }
+      }
+
+      if (event.ctrlKey && event.key === "e") {
+        if (rows.length === 1 || (rows.length > 1 && selectedTags.length > 0)) {
+          event.preventDefault();
+          setOpen(true);
+        }
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [rows]);
+
   function handleDeleteTag(tag: string) {
     if (!tagsToDelete.includes(tag)) {
       setSelectedTags((prev) => prev.filter((t) => t !== tag));
@@ -828,9 +859,7 @@ function Actions({
 
 function CurrentSelectionDetails({ rows }: { rows: Row<BookmarkQueryItem>[] }) {
   if (rows.length === 0) {
-    return (
-      <div className="text-muted-foreground px-2">No bookmarks selected</div>
-    );
+    return;
   }
 
   if (rows.length === 1) {
@@ -845,7 +874,7 @@ function CurrentSelectionDetails({ rows }: { rows: Row<BookmarkQueryItem>[] }) {
         </div>
         <div className="flex gap-2">
           {(row.getValue("tags") as string[])?.map((tag) => (
-            <Badge>{tag}</Badge>
+            <Badge key={tag}>{tag}</Badge>
           ))}
         </div>
       </div>
