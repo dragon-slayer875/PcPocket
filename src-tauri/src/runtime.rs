@@ -8,7 +8,7 @@ pub fn on_run_event(app_handle: &tauri::AppHandle, event: tauri::RunEvent) {
     match event {
         #[cfg(target_os = "macos")]
         tauri::RunEvent::Reopen { .. } => {
-            crate::commands::open_main_window(app_handle).unwrap();
+            crate::commands::open_main_window(app_handle);
         }
         tauri::RunEvent::ExitRequested { api, .. } => {
             if !EXIT_FLAG.load(std::sync::atomic::Ordering::Relaxed) {

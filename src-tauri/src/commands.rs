@@ -37,8 +37,28 @@ pub fn open_main_window(app_handle: &AppHandle) {
         crate::dock::set_dock_visible(true);
     }
     if let Some(window) = app_handle.get_webview_window("main") {
-        window.show().unwrap();
-        window.set_focus().unwrap();
+        match window.show() {
+            Ok(_) => {}
+            Err(e) => {
+                broadcast_info(
+                    "Failed to show main window",
+                    &format!("Failed to show main window: {}", e),
+                    log::Level::Error,
+                    false,
+                );
+            }
+        }
+        match window.set_focus() {
+            Ok(_) => {}
+            Err(e) => {
+                broadcast_info(
+                    "Failed to focus main window",
+                    &format!("Failed to focus main window: {}", e),
+                    log::Level::Error,
+                    false,
+                );
+            }
+        }
     } else {
         let open_url;
         let binding = app_handle.state::<Mutex<AppData>>();
@@ -48,11 +68,26 @@ pub fn open_main_window(app_handle: &AppHandle) {
         } else {
             open_url = "/";
         }
-        tauri::WebviewWindowBuilder::new(app_handle, "main", WebviewUrl::App(open_url.into()))
+        match tauri::WebviewWindowBuilder::new(app_handle, "main", WebviewUrl::App(open_url.into()))
             .title("PcPocket")
             .inner_size(800.0, 600.0)
             .build()
-            .unwrap();
+        {
+            Ok(_) => {
+                #[cfg(target_os = "macos")]
+                {
+                    crate::dock::set_dock_visible(true);
+                }
+            }
+            Err(e) => {
+                broadcast_info(
+                    "Failed to open main window",
+                    &format!("Failed to open main window: {}", e),
+                    log::Level::Error,
+                    false,
+                );
+            }
+        }
     }
 }
 
