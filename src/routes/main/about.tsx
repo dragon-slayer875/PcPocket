@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Coffee } from "lucide-react";
 import { SiGithub, SiX } from "@icons-pack/react-simple-icons";
 import { openUrl } from "@tauri-apps/plugin-opener";
@@ -29,7 +28,6 @@ function RouteComponent() {
     author: {
       name: "Rudraksh Tyagi",
       role: "Tinkerer and Enjoyer of many interests",
-      avatar: "/placeholder.svg",
       bio: "Eternal learner. Passionate about technology and all that it allows me to do. Lover of performant and efficient code and functional and pretty UIs.",
     },
     social: {
@@ -66,26 +64,12 @@ function RouteComponent() {
         <CardHeader>
           <CardTitle>About the Creator</CardTitle>
         </CardHeader>
-        <CardContent className="flex flex-col md:flex-row gap-6">
-          <div className="flex flex-col items-center gap-4">
-            <Avatar className="h-24 w-24">
-              <AvatarImage
-                src={appInfo.author.avatar}
-                alt={appInfo.author.name}
-              />
-              <AvatarFallback>
-                {appInfo.author.name
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")}
-              </AvatarFallback>
-            </Avatar>
-            <div className="text-center">
-              <h3 className="font-medium">{appInfo.author.name}</h3>
-              <p className="text-sm text-muted-foreground">
-                {appInfo.author.role}
-              </p>
-            </div>
+        <CardContent className="flex flex-col items-center md:flex-row gap-6">
+          <div className="text-center">
+            <h3 className="font-medium">{appInfo.author.name}</h3>
+            <p className="text-sm text-muted-foreground">
+              {appInfo.author.role}
+            </p>
           </div>
           <Separator className="md:hidden" />
           <div className="md:border-l md:pl-6 flex-1">
