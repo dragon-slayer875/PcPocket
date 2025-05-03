@@ -24,17 +24,17 @@ function RouteComponent() {
     name: "PcPocket",
     version: "1.6.0-beta",
     description:
-      "Cross platform offline bookmark manager. Built with Tauri, React, and TypeScript.",
+      "Cross platform, offline first bookmark manager. Built with Tauri, React, and TypeScript.",
     author: {
       name: "Rudraksh Tyagi",
-      role: "Tinkerer and Developer",
+      role: "Tinkerer and Enjoyer of many interests",
       avatar: "/placeholder.svg",
-      bio: "A brief bio about yourself, your background, and your experience. Share what motivates you and what you're passionate about.",
+      bio: "Eternal learner. Passionate about technology and all that it allows me to do. Lover of performant and efficient code and functional and pretty UIs.",
     },
     social: {
       github: "https://github.com/dragon-slayer875",
-      twitter: "https://twitter.com/yourusername",
-      buyMeACoffee: "https://buymeacoffee.com/yourusername",
+      twitter: "https://x.com/r875t",
+      buyMeACoffee: "https://buymeacoffee.com/dragonslayer875",
     },
   };
 
