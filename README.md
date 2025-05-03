@@ -1,4 +1,4 @@
-# ![PCPocket Logo](./assets/pcpocket-logo.png)
+# ![PCPocket Banner](./assets/pcpocket-banner.png)
 
 A cross-platform, offline-first bookmark manager built with Tauri, React, and Vite.
 
@@ -35,9 +35,10 @@ Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases)
 
 The PCPocket extension is available for:
 
-- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/pcpocket/)
-- [Chrome Web Store](https://chrome.google.com/webstore/detail/pcpocket/[extension-id])
-- Edge, Brave, and other Chromium-based browsers (use the Chrome extension)
+- Edge, Brave, and other Chromium-based browsers
+- Zen, Waterfox, and other firefox based browsers
+
+[Source](https://github.com/dragon-slayer875/pcpocket-extension)  [Download](https://github.com/dragon-slayer875/pcpocket-extension/releases)
 
 ### Build from Source
 
@@ -84,7 +85,7 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - s
 
 ## Contact
 
-Project Link: [https://github.com/dragon-slayer875/PcPocket](https://github.com/dragon-slayer875/PcPocket)
+Profile Link: [https://github.com/dragon-slayer875](https://github.com/dragon-slayer875)
 
 ## Roadmap
 
