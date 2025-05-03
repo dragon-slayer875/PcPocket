@@ -19,13 +19,17 @@ jobs:
           - platform: "macos-latest" # for Intel based macs.
             args: "--target x86_64-apple-darwin"
           - platform: "ubuntu-22.04"
-            args: ""
+            args: "NO_STRIP=true"
           - platform: "windows-latest"
             args: ""
 
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: "Build Changelog"
+        id: build_changelog
+        uses: mikepenz/release-changelog-builder-action@{latest-release}
 
       - name: install dependencies (ubuntu only)
         if: matrix.platform == 'ubuntu-22.04' # This must match the platform value defined above.
@@ -58,10 +62,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: app-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
+          tagName: PcPocket-v__VERSION__ # the action automatically replaces \_\_VERSION\_\_ with the app version.
           releaseName: "PcPocket v__VERSION__"
-          releaseBody: "See the assets to download this version and install."
-          releaseDraft: true
+          releaseBody: ${{steps.build_changelog.outputs.changelog}}
+          releaseDraft: false
           prerelease: false
           includeUpdaterJson: false
           updaterJsonPreferNsis: true
