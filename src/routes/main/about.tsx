@@ -13,16 +13,24 @@ import { Badge } from "@/components/ui/badge";
 import { Coffee } from "lucide-react";
 import { SiGithub, SiX } from "@icons-pack/react-simple-icons";
 import { openUrl } from "@tauri-apps/plugin-opener";
+import { getVersion } from "@tauri-apps/api/app";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/main/about")({
   component: RouteComponent,
 });
 
 function RouteComponent() {
-  // Replace with your app's information
+  const { data: version } = useQuery({
+    queryKey: ["version"],
+    queryFn: async () => {
+      const version = await getVersion();
+      return version;
+    },
+  });
+
   const appInfo = {
     name: "PcPocket",
-    version: "1.6.0-beta",
     description:
       "Cross platform, offline first bookmark manager. Built with Tauri, React, and TypeScript.",
     author: {
@@ -48,7 +56,7 @@ function RouteComponent() {
           <CardTitle className="text-2xl flex items-center gap-2">
             {appInfo.name}
             <Badge variant="outline" className="ml-2">
-              v{appInfo.version}
+              v{version}
             </Badge>
           </CardTitle>
           <CardDescription className="text-base">
