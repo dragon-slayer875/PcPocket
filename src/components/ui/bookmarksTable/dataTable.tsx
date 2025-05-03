@@ -131,88 +131,7 @@ export function DataTable() {
       rowSelection,
       pagination,
     },
-    debugTable: true,
   });
-
-  const handleFindShortcut = useCallback((event: KeyboardEvent) => {
-    const activeElement = document.activeElement as HTMLElement | null;
-    if ((event.ctrlKey && event.key === "f") || event.key === "/") {
-      if (
-        activeElement instanceof HTMLInputElement ||
-        activeElement instanceof HTMLTextAreaElement ||
-        activeElement?.isContentEditable
-      ) {
-        return;
-      }
-      event.preventDefault();
-      searchRef.current?.focus();
-    }
-  }, []);
-
-  const handleCopyShortcut = useCallback(
-    (event: KeyboardEvent) => {
-      const activeElement = document.activeElement as HTMLElement | null;
-      if (event.ctrlKey && event.key === "c") {
-        if (
-          activeElement instanceof HTMLInputElement ||
-          activeElement instanceof HTMLTextAreaElement ||
-          (activeElement && activeElement.isContentEditable)
-        ) {
-          return;
-        }
-        event.preventDefault();
-        const selectedRows = table.getSelectedRowModel().rows;
-        if (selectedRows.length === 1) {
-          const selectedRow = selectedRows[0];
-          writeText(selectedRow.getValue("link") as string);
-          toast("Link copied to clipboard.");
-        }
-      }
-    },
-    [table],
-  );
-
-  const handleSelectAllShortcut = useCallback(
-    (event: KeyboardEvent) => {
-      const activeElement = document.activeElement as HTMLElement | null;
-      if (event.ctrlKey && event.key === "a" && !event.altKey) {
-        if (
-          activeElement instanceof HTMLInputElement ||
-          activeElement instanceof HTMLTextAreaElement ||
-          (activeElement && activeElement.isContentEditable)
-        ) {
-          return;
-        }
-        event.preventDefault();
-        table.toggleAllRowsSelected();
-      }
-    },
-    [table],
-  );
-
-  const handleOpenShortcut = useCallback(
-    (event: KeyboardEvent) => {
-      const activeElement = document.activeElement as HTMLElement | null;
-      if (event.key === "Enter") {
-        if (
-          activeElement instanceof HTMLInputElement ||
-          activeElement instanceof HTMLTextAreaElement ||
-          activeElement instanceof HTMLButtonElement ||
-          (activeElement && activeElement.isContentEditable)
-        ) {
-          return;
-        }
-        event.preventDefault();
-        const selectedRows = table.getSelectedRowModel().rows;
-        if (selectedRows.length === 1) {
-          const selectedRow = selectedRows[0];
-          const link = selectedRow.getValue("link") as string;
-          openUrl(link);
-        }
-      }
-    },
-    [table],
-  );
 
   const toggleTagsFilter = useCallback(
     (tags: string[]) => {
@@ -228,23 +147,50 @@ export function DataTable() {
   );
 
   useEffect(() => {
-    document.addEventListener("keydown", handleFindShortcut);
-    document.addEventListener("keydown", handleCopyShortcut);
-    document.addEventListener("keydown", handleSelectAllShortcut);
-    document.addEventListener("keydown", handleOpenShortcut);
+    function handleKeyDown(event: KeyboardEvent) {
+      const activeElement = document.activeElement as HTMLElement | null;
+      const isTyping =
+        activeElement instanceof HTMLInputElement ||
+        activeElement instanceof HTMLTextAreaElement ||
+        (activeElement && activeElement.isContentEditable);
+
+      if (isTyping) return;
+
+      if (event.key === "Enter") {
+        const selectedRows = table.getSelectedRowModel().rows;
+        if (selectedRows.length === 1) {
+          const selectedRow = selectedRows[0];
+          const link = selectedRow.getValue("link") as string;
+          openUrl(link);
+        }
+      }
+
+      if (event.ctrlKey && event.key === "a" && !event.altKey) {
+        event.preventDefault();
+        table.toggleAllRowsSelected();
+      }
+
+      if (event.ctrlKey && event.key === "c") {
+        event.preventDefault();
+        const selectedRows = table.getSelectedRowModel().rows;
+        if (selectedRows.length === 1) {
+          const selectedRow = selectedRows[0];
+          writeText(selectedRow.getValue("link") as string);
+          toast("Link copied to clipboard.");
+        }
+      }
+
+      if ((event.ctrlKey && event.key === "f") || event.key === "/") {
+        event.preventDefault();
+        searchRef.current?.focus();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener("keydown", handleFindShortcut);
-      document.removeEventListener("keydown", handleCopyShortcut);
-      document.removeEventListener("keydown", handleSelectAllShortcut);
-      document.removeEventListener("keydown", handleOpenShortcut);
+      document.removeEventListener("keydown", handleKeyDown);
     };
-  }, [
-    handleFindShortcut,
-    handleCopyShortcut,
-    handleSelectAllShortcut,
-    handleOpenShortcut,
-  ]);
+  }, [table]);
 
   useEffect(() => {
     if (!debouncedFilterInput) {
@@ -263,8 +209,8 @@ export function DataTable() {
     setRowSelection(
       firstRow
         ? {
-          [firstRow.id]: true,
-        }
+            [firstRow.id]: true,
+          }
         : {},
     );
   }, [columnFilters]);
@@ -381,9 +327,9 @@ export function DataTable() {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
                           </TableHead>
                         );
                       })}
@@ -445,7 +391,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-        navigator.userAgent.indexOf("Firefox") === -1
+      navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
@@ -732,7 +678,7 @@ function Actions({
             <Button
               size={"lg"}
               variant={"destructive"}
-              onClick={async function() {
+              onClick={async function () {
                 await deleteBookmark.mutateAsync(row.getValue("id") as number);
                 setOpenDelete(false);
               }}
@@ -767,7 +713,7 @@ function Actions({
                   key={tag}
                   variant="secondary"
                   className="cursor-pointer rounded-lg"
-                  onClick={function() {
+                  onClick={function () {
                     handleDeleteTag(tag);
                   }}
                 >
@@ -783,7 +729,7 @@ function Actions({
                   key={tag}
                   className="cursor-pointer rounded-lg"
                   variant={"destructive"}
-                  onClick={function() {
+                  onClick={function () {
                     handleDeleteTag(tag);
                   }}
                 >
@@ -794,7 +740,7 @@ function Actions({
             <Input
               type="text"
               value={tagsInputValue}
-              onChange={function(e) {
+              onChange={function (e) {
                 setTagsInputValue(e.target.value);
                 const tags = e.target.value.split(",").map((tag) => tag.trim());
                 setTagsToAdd(tags);
@@ -805,7 +751,7 @@ function Actions({
             <Button
               size={"lg"}
               hidden={tagsToDelete.length === 0 && tagsToAdd.length === 0}
-              onClick={async function() {
+              onClick={async function () {
                 const ids: number[] = rows.map((row) => row.getValue("id"));
                 await updateTags.mutateAsync({
                   ids,
@@ -838,7 +784,7 @@ function Actions({
             <Button
               size={"lg"}
               variant={"destructive"}
-              onClick={async function() {
+              onClick={async function () {
                 const ids: number[] = rows.map((row) => row.getValue("id"));
                 await deleteMultipleBookmarks.mutateAsync({
                   ids: ids,
