@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Coffee } from "lucide-react";
 import { SiGithub, SiX } from "@icons-pack/react-simple-icons";
+import { openUrl } from "@tauri-apps/plugin-opener";
 
 export const Route = createFileRoute("/main/about")({
   component: RouteComponent,
@@ -95,49 +96,31 @@ function RouteComponent() {
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
           <Button
-            asChild
             variant="outline"
             size="lg"
             className="w-full sm:w-auto"
+            onClick={() => openUrl(appInfo.social.github)}
           >
-            <a
-              href={appInfo.social.github}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <SiGithub className="mr-2 h-4 w-4" />
-              GitHub
-            </a>
+            <SiGithub className="mr-2 h-4 w-4" />
+            GitHub
           </Button>
           <Button
-            asChild
             variant="outline"
             size="lg"
             className="w-full sm:w-auto"
+            onClick={() => openUrl(appInfo.social.twitter)}
           >
-            <a
-              href={appInfo.social.twitter}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <SiX className="mr-2 h-4 w-4" />
-              Twitter
-            </a>
+            <SiX className="mr-2 h-4 w-4" />
+            Twitter
           </Button>
           <Button
-            asChild
             variant="default"
             size="lg"
             className="w-full sm:w-auto"
+            onClick={() => openUrl(appInfo.social.buyMeACoffee)}
           >
-            <a
-              href={appInfo.social.buyMeACoffee}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Coffee className="mr-2 h-4 w-4" />
-              Buy me a coffee
-            </a>
+            <Coffee className="mr-2 h-4 w-4" />
+            Buy me a coffee
           </Button>
         </CardFooter>
       </Card>

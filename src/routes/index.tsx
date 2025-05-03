@@ -20,9 +20,7 @@ function Index() {
       </h1>
       <div className="flex flex-col gap-2 self-end sm:self-baseline">
         <Button
-          onClick={function () {
-            createDbMutation.mutate();
-          }}
+          onClick={() => createDbMutation.mutate()}
           size="lg"
           className="flex items-center justify-between"
         >
@@ -30,9 +28,7 @@ function Index() {
           <FilePlus2 />
         </Button>
         <Button
-          onClick={function () {
-            openDbMutation.mutate();
-          }}
+          onClick={() => openDbMutation.mutate()}
           size="lg"
           variant="secondary"
           className="flex items-center justify-between"
@@ -44,9 +40,9 @@ function Index() {
           size="lg"
           variant="outline"
           className="w-full flex items-center justify-between"
-          onClick={async function () {
-            await openUrl("https://github.com/dragon-slayer875/PcPocket");
-          }}
+          onClick={() =>
+            openUrl("https://github.com/dragon-slayer875/PcPocket")
+          }
         >
           <span>View Source</span>
           <SiGithub />

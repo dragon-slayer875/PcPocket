@@ -26,7 +26,7 @@ export function CopyButton({
     <Button
       variant={"ghost"}
       className={`${className}`}
-      onClick={async function() {
+      onClick={() => {
         writeText(text);
         setCopied(true);
       }}

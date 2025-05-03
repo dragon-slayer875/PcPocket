@@ -32,7 +32,7 @@ function ImportForm({ setOpen }: { setOpen: (open: boolean) => void }) {
         />
         <Button
           className="ml-2"
-          onClick={async function () {
+          onClick={async () => {
             const path = await open();
             if (path) {
               setFilePath(path);

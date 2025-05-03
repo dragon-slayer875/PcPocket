@@ -68,9 +68,7 @@ export const columns: ColumnDef<BookmarkQueryItem>[] = [
       return (
         <span
           className="text-primary underline-offset-4 hover:underline active:underline inline-block flex-1 overflow-hidden overflow-ellipsis cursor-pointer"
-          onClick={function() {
-            openUrl(link);
-          }}
+          onClick={() => openUrl(link)}
         >
           {link}
         </span>

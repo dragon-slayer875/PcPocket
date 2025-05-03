@@ -11,7 +11,7 @@ export const Route = createFileRoute("/main/bookmarks")({
   loader: async ({ context }) => {
     await context.queryClient.prefetchQuery({
       queryKey: ["bookmarks", ""],
-      queryFn: async function(): Promise<BookmarkQueryItem[]> {
+      queryFn: async function (): Promise<BookmarkQueryItem[]> {
         const bookmarks = await invoke("get_bookmarks", {
           index: 0,
           pageSize: 50,
@@ -30,6 +30,7 @@ function RouteComponent() {
   useEffect(() => {
     const unlistenBookmarksUpdate = listen("bookmarks-updated", () => {
       queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
+      queryClient.invalidateQueries({ queryKey: ["tags"] });
     });
 
     return () => {

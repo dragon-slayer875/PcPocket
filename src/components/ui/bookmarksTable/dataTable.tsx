@@ -154,9 +154,8 @@ export function DataTable() {
         activeElement instanceof HTMLTextAreaElement ||
         (activeElement && activeElement.isContentEditable);
 
-      if (isTyping) return;
-
-      if (event.key === "Enter") {
+      if (event.shiftKey && event.key === "Enter") {
+        event.preventDefault();
         const selectedRows = table.getSelectedRowModel().rows;
         if (selectedRows.length === 1) {
           const selectedRow = selectedRows[0];
@@ -164,6 +163,18 @@ export function DataTable() {
           openUrl(link);
         }
       }
+
+      if (
+        event.shiftKey &&
+        event.key === "Backspace" &&
+        activeElement === searchRef.current
+      ) {
+        event.preventDefault();
+        setFilter("");
+        setColumnFilters([]);
+      }
+
+      if (isTyping) return;
 
       if (event.ctrlKey && event.key === "a" && !event.altKey) {
         event.preventDefault();
@@ -678,8 +689,8 @@ function Actions({
             <Button
               size={"lg"}
               variant={"destructive"}
-              onClick={async function () {
-                await deleteBookmark.mutateAsync(row.getValue("id") as number);
+              onClick={() => {
+                deleteBookmark.mutate(row.getValue("id") as number);
                 setOpenDelete(false);
               }}
             >
@@ -713,9 +724,7 @@ function Actions({
                   key={tag}
                   variant="secondary"
                   className="cursor-pointer rounded-lg"
-                  onClick={function () {
-                    handleDeleteTag(tag);
-                  }}
+                  onClick={() => handleDeleteTag(tag)}
                 >
                   <span>{tag}</span>
                 </Button>
@@ -729,9 +738,7 @@ function Actions({
                   key={tag}
                   className="cursor-pointer rounded-lg"
                   variant={"destructive"}
-                  onClick={function () {
-                    handleDeleteTag(tag);
-                  }}
+                  onClick={() => handleDeleteTag(tag)}
                 >
                   <span>{tag}</span>
                 </Button>
@@ -740,7 +747,7 @@ function Actions({
             <Input
               type="text"
               value={tagsInputValue}
-              onChange={function (e) {
+              onChange={(e) => {
                 setTagsInputValue(e.target.value);
                 const tags = e.target.value.split(",").map((tag) => tag.trim());
                 setTagsToAdd(tags);
@@ -751,9 +758,9 @@ function Actions({
             <Button
               size={"lg"}
               hidden={tagsToDelete.length === 0 && tagsToAdd.length === 0}
-              onClick={async function () {
+              onClick={() => {
                 const ids: number[] = rows.map((row) => row.getValue("id"));
-                await updateTags.mutateAsync({
+                updateTags.mutate({
                   ids,
                   tagsToAdd: Array.from(tagsToAdd).filter((tag) => tag),
                   tagsToDelete: Array.from(tagsToDelete),
@@ -784,9 +791,9 @@ function Actions({
             <Button
               size={"lg"}
               variant={"destructive"}
-              onClick={async function () {
+              onClick={() => {
                 const ids: number[] = rows.map((row) => row.getValue("id"));
-                await deleteMultipleBookmarks.mutateAsync({
+                deleteMultipleBookmarks.mutate({
                   ids: ids,
                 });
                 setOpen(false);
