@@ -1,6 +1,6 @@
 # ![PCPocket Banner](https://github.com/user-attachments/assets/98e1ef3f-9e2d-47bc-8e6a-0a6f26b7ea36)
 
-A cross-platform, offline-first bookmark manager built with Tauri, React, and Vite.
+A cross-platform, lightning fast and offline-first bookmark manager built with Tauri, React, and Vite.
 
 ![PcPocket screenshot](https://github.com/user-attachments/assets/eebf43a1-9f1e-4707-89e2-549e9792a909)
 
@@ -13,6 +13,7 @@ PCPocket is a modern bookmark management solution designed to work seamlessly ac
 - **Cross-Platform**: Works on Windows, macOS, and Linux
 - **Browser Extension**: Available for Firefox and Chromium-based browsers (Chrome, Edge, Brave, Zen, Waterfox etc.)
 - **Offline-First**: All bookmarks stored locally in SQLite database with optional cloud sync
+- **Lightning fast**: Operate over 100,000+ bookmarks instantly
 - **Modern UI**: Built with React for a responsive and intuitive user experience
 - **Tag System**: Organize bookmarks with customizable tags and categories
 - **Quick Search**: Find bookmarks by title and tags
@@ -40,7 +41,9 @@ The PCPocket extension is available for:
 
 [Source](https://github.com/dragon-slayer875/pcpocket-extension)  [Download](https://github.com/dragon-slayer875/pcpocket-extension/releases)
 
-### Build from Source
+### Build from Source / Contribute
+
+[Prerequisites](https://tauri.app/start/prerequisites/)
 
 ```bash
 # Clone the repository
@@ -74,8 +77,6 @@ The current version supports searching by:
 
 - Bookmark titles
 - Tags
-
-Full-text content search is planned for future releases.
 
 ## License
 
