@@ -1,4 +1,4 @@
-# ![PCPocket Banner](./assets/pcpocket-banner.png)
+# ![PCPocket Banner](https://github.com/user-attachments/assets/98e1ef3f-9e2d-47bc-8e6a-0a6f26b7ea36)
 
 A cross-platform, offline-first bookmark manager built with Tauri, React, and Vite.
 
