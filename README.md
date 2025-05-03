@@ -1,7 +1,92 @@
-# Tauri + React + Typescript
+# PCPocket
 
-This template should help get you started developing with Tauri, React and Typescript in Vite.
+A cross-platform, offline-first bookmark manager built with Tauri, React, and Vite.
 
-## Recommended IDE Setup
+![PCPocket Logo](./assets/pcpocket-logo.png)
 
-- [VS Code](https://code.visualstudio.com/) + [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode) + [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
+## Overview
+
+PCPocket is a modern bookmark management solution designed to work seamlessly across all major desktop platforms. Unlike traditional browser-based bookmarks, PCPocket stores your bookmarks locally in SQLite, ensuring you always have access to your important links even without an internet connection.
+
+## Features
+
+- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Browser Extension**: Available for Firefox and Chromium-based browsers (Chrome, Edge, Brave, Zen, Waterfox etc.)
+- **Offline-First**: All bookmarks stored locally in SQLite database with optional cloud sync
+- **Modern UI**: Built with React for a responsive and intuitive user experience
+- **Tag System**: Organize bookmarks with customizable tags and categories
+- **Quick Search**: Find bookmarks by title and tags
+- **Data Export/Import**: Seamlessly migrate from browser bookmarks
+- **Privacy-Focused**: Your data stays on your device by default
+
+## Installation
+
+### Desktop Application
+
+Pre-built installers are available for:
+
+- Windows (.exe)
+- macOS (.dmg)
+- Linux (.deb, .AppImage, .rpm)
+
+Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases) to download the appropriate version.
+
+### Browser Extension
+
+The PCPocket extension is available for:
+
+- [Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/pcpocket/)
+- [Chrome Web Store](https://chrome.google.com/webstore/detail/pcpocket/[extension-id])
+- Edge, Brave, and other Chromium-based browsers (use the Chrome extension)
+
+### Build from Source
+
+```bash
+# Clone the repository
+git clone https://github.com/dragon-slayer875/PcPocket.git
+cd PcPocket
+
+# Install dependencies
+npm install
+
+# Development
+npm run tauri dev
+
+# Build for production
+npm run tauri build
+```
+
+## Technical Details
+
+### Data Storage
+
+PCPocket uses SQLite for local storage, providing:
+
+- Efficient data storage with minimal footprint
+- Fast search and retrieval operations
+- Data integrity and reliability
+- Easy backup and portability
+
+### Search Capabilities
+
+The current version supports searching by:
+
+- Bookmark titles
+- Tags
+
+Full-text content search is planned for future releases.
+
+## License
+
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## Contact
+
+Project Link: [https://github.com/dragon-slayer875/PcPocket](https://github.com/dragon-slayer875/PcPocket)
+
+## Roadmap
+
+- Mobile companion app
+- Sync options with end-to-end encryption
