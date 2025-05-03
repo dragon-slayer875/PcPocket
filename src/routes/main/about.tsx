@@ -41,9 +41,6 @@ function RouteComponent() {
     <div className="mx-auto max-w-4xl flex flex-1 flex-col overflow-auto space-y-8 md:self-center">
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">About</h1>
-        <p className="text-muted-foreground">
-          Information about the application and its creator
-        </p>
       </div>
 
       <Card>
@@ -58,6 +55,19 @@ function RouteComponent() {
             {appInfo.description}
           </CardDescription>
         </CardHeader>
+        <CardFooter className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+          <Button
+            variant="outline"
+            size="lg"
+            className="w-full sm:w-auto"
+            onClick={() =>
+              openUrl("https://github.com/dragon-slayer875/PcPocket")
+            }
+          >
+            <SiGithub className="mr-2 h-4 w-4" />
+            Source
+          </Button>
+        </CardFooter>
       </Card>
 
       <Card>
