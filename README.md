@@ -78,6 +78,8 @@ The current version supports searching by:
 - Bookmark titles
 - Tags
 
+Tested to operate flawlessly on over 100,000+ rows, with room for more!
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0) - see the [LICENSE](LICENSE) file for details.
