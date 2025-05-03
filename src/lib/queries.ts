@@ -122,7 +122,6 @@ export function useGetCustomParsersQuery() {
 }
 
 export function useImportBookmarksMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function ({
       filePath,
@@ -136,15 +135,10 @@ export function useImportBookmarksMutation() {
         parserName,
       });
     },
-    async onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
   });
 }
 
 export function useInsertBookmarkMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function (bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
@@ -156,15 +150,10 @@ export function useInsertBookmarkMutation() {
         tags: bookmark.tags,
       });
     },
-    async onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
   });
 }
 
 export function useUpdateBookmarkMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function (bookmark: BookmarkMutationItem) {
       const bookmarkClone = structuredClone(bookmark);
@@ -178,15 +167,10 @@ export function useUpdateBookmarkMutation() {
         tags: bookmark.tags,
       });
     },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
   });
 }
 
 export function useUpdateTagsMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function ({
       ids,
@@ -203,39 +187,25 @@ export function useUpdateTagsMutation() {
         tagsToDelete,
       });
     },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
   });
 }
 
 export function useDeleteBookmarkMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function (id: number) {
       return invoke("bookmark_delete", {
         deleteId: id,
       });
     },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
-    },
   });
 }
 
 export function useDeleteMultipleBookmarksMutation() {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async function ({ ids }: { ids: number[] }) {
       return invoke("batch_delete", {
         ids,
       });
-    },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["bookmarks"] });
-      queryClient.invalidateQueries({ queryKey: ["tags"] });
     },
   });
 }
