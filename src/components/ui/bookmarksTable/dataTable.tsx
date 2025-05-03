@@ -75,6 +75,7 @@ import { CopyButton } from "../copyButton";
 import { BookmarkForm } from "@/components/bookmarkForm";
 import { Separator } from "../separator";
 import { Input } from "../input";
+import { ShortcutsListDialog } from "@/components/shortcutsListDialog";
 
 export function DataTable() {
   const [pagination, setPagination] = useState<PaginationState>({
@@ -164,11 +165,7 @@ export function DataTable() {
         }
       }
 
-      if (
-        event.shiftKey &&
-        event.key === "Backspace" &&
-        activeElement === searchRef.current
-      ) {
+      if (event.shiftKey && event.key === "Backspace") {
         event.preventDefault();
         setFilter("");
         setColumnFilters([]);
@@ -252,6 +249,7 @@ export function DataTable() {
           )}
         </div>
         <div className="flex gap-2">
+          <ShortcutsListDialog />
           <Actions
             rows={table.getSelectedRowModel().rows}
             tagFilters={columnFilters.reduce((acc: string[], filter) => {
