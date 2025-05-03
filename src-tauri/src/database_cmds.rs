@@ -12,11 +12,28 @@ use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager};
 
 use crate::structs::AppData;
+use diesel::r2d2::CustomizeConnection;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 pub type DbPool = Pool<ConnectionManager<SqliteConnection>>;
 pub type DbConnection = PooledConnection<ConnectionManager<SqliteConnection>>;
+
+// Create a custom connection customizer
+#[derive(Debug)]
+struct SqliteForeignKeyCustomizer;
+
+impl<C, E> CustomizeConnection<C, E> for SqliteForeignKeyCustomizer
+where
+    C: diesel::connection::SimpleConnection,
+    E: Error + Send + Sync + 'static + std::convert::From<diesel::r2d2::Error>,
+{
+    fn on_acquire(&self, conn: &mut C) -> Result<(), E> {
+        conn.batch_execute("PRAGMA foreign_keys = ON")
+            .map_err(|e| diesel::r2d2::Error::QueryError(e))?;
+        Ok(())
+    }
+}
 
 pub async fn run_migrations<DB: Backend>(
     connection: &mut impl MigrationHarness<DB>,
@@ -34,6 +51,7 @@ pub fn establish_connection_pool(path: &str) -> DbPool {
     let manager = ConnectionManager::<SqliteConnection>::new(database_url);
     Pool::builder()
         .max_size(5)
+        .connection_customizer(Box::new(SqliteForeignKeyCustomizer))
         .build(manager)
         .expect("Failed to create connection pool")
 }
