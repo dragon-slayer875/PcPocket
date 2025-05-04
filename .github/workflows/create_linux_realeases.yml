@@ -33,7 +33,7 @@ jobs:
         run: docker build -t tauri_linux_build .
 
       - name: Run container
-        run: docker run --rm -v $(pwd):/src-tauri/target/release/bundle tauri_linux_build
+        run: docker run --rm -v $(pwd):/app/src-tauri/target/release/bundle tauri_linux_build
 
       - name: Create Release
         id: create_release
