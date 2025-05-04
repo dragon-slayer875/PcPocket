@@ -27,8 +27,10 @@ PCPocket is a modern bookmark management solution designed to work seamlessly ac
 Pre-built installers are available for:
 
 - Windows (.exe)
-- macOS (.dmg)
 - Linux (.deb, .AppImage, .rpm)
+
+> [!NOTE]
+> Due to some inconsistencies in Tauri's current build system, all builds except AppImages suffer from a performance hit.
 
 Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases) to download the appropriate version.
 
@@ -39,7 +41,7 @@ The PCPocket extension is available for:
 - Edge, Brave, and other Chromium-based browsers
 - Zen, Waterfox, and other firefox based browsers
 
-[Source](https://github.com/dragon-slayer875/pcpocket-extension)  [Download](https://github.com/dragon-slayer875/pcpocket-extension/releases)
+[Source](https://github.com/dragon-slayer875/pcpocket-extension) [Download](https://github.com/dragon-slayer875/pcpocket-extension/releases)
 
 ### Build from Source / Contribute
 
