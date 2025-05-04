@@ -1,0 +1,44 @@
+name: "publish "
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - release
+
+jobs:
+  publish-tauri-linux:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
+      - name: Extract Tauri config values
+        id: tauri_config
+        run: |
+          version=$(jq -r '.version' src-tauri/tauri.conf.json)
+          product_name=$(jq -r '.productName' src-tauri/tauri.conf.json)
+          echo "version=$version" >> $GITHUB_OUTPUT
+          echo "product_name=$product_name" >> $GITHUB_OUTPUT
+
+      - name: Containerized Build
+        uses: ./.github/actions/multi_stage_docker_build
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: PcPocket v${{ steps.tauri_config.outputs.version }}
+          draft: false
+          prerelease: false
+          files: "*.AppImage"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
