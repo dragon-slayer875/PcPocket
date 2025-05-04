@@ -1,5 +1,0 @@
-name: "Create Linux Builds"
-description: "Use docker to build optimized builds for different linux platforms"
-runs:
-  using: "docker"
-  image: "Dockerfile"

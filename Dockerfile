@@ -31,6 +31,4 @@ COPY . .
 RUN npm install
 
 # Build the Tauri application and copy the output
-CMD sh -c "NO_STRIP=true npm run tauri build -- -b appimage && \
-    cp -v src-tauri/target/release/bundle/appimage/*.AppImage /github/workspace/ || \
-    echo 'Build output not found. Check build logs for errors.'"
+CMD sh -c "NO_STRIP=true npm run tauri build -- -b appimage"
