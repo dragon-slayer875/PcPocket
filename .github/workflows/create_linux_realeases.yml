@@ -30,10 +30,10 @@ jobs:
           echo "product_name=$product_name" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
-        run: docker build -t tauri_linux_build .
+        run: docker build -t tauri_linux_builds .
 
       - name: Run container
-        run: docker run --rm -v $(pwd):/app/src-tauri/target/release/bundle tauri_linux_build
+        run: docker run --rm -v $(pwd):/mnt tauri_linux_builds
 
       - name: Create Release
         id: create_release
@@ -43,6 +43,9 @@ jobs:
           draft: false
           prerelease: false
           tag_name: PcPocket-v${{ steps.tauri_config.outputs.version }}
-          files: "appimage/*.AppImage"
+          files: |
+            *.AppImage
+            *.deb
+            *.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
