@@ -60,8 +60,8 @@ pub struct ParsedBookmarkWithTags {
 
 #[derive(Serialize, Debug, Clone, Deserialize)]
 pub struct ParseFailBookmark {
-    note_index: i32,
-    note_title: String,
+    index: i32,
+    item: String,
     error: String,
 }
 

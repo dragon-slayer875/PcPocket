@@ -6,19 +6,21 @@ A cross-platform, lightning fast and offline-first bookmark manager built with T
 
 ## Overview
 
-PCPocket is a modern bookmark management solution designed to work seamlessly across all major desktop platforms. Unlike traditional browser-based bookmarks, PCPocket stores your bookmarks locally in SQLite, ensuring you always have access to your important links even without an internet connection.
+PcPocket is a modern bookmark management solution designed to work seamlessly across all major desktop platforms. Unlike traditional browser-based bookmarks, PcPocket stores your bookmarks locally in SQLite, ensuring you always have access to your important links even without an internet connection.
 
 ## Features
 
-- **Cross-Platform**: Works on Windows, macOS, and Linux
+- **Cross-Platform**: Works on Windows and Linux
 - **Browser Extension**: Available for Firefox and Chromium-based browsers (Chrome, Edge, Brave, Zen, Waterfox etc.)
-- **Offline-First**: All bookmarks stored locally in SQLite database with optional cloud sync
+- **Offline-First**: All bookmarks stored locally in SQLite database
 - **Lightning fast**: Operate over 100,000+ bookmarks instantly
 - **Modern UI**: Built with React for a responsive and intuitive user experience
 - **Tag System**: Organize bookmarks with customizable tags and categories
 - **Quick Search**: Find bookmarks by title and tags
 - **Data Export/Import**: Seamlessly migrate from browser bookmarks
-- **Privacy-Focused**: Your data stays on your device by default
+- **Custom Parsers**: Use custom parsers to import data from your own sources
+- **Lightweight**: Minimal system resource usage
+- **Hotswappable Config**: Change settings without restarting the app
 
 ## Installation
 
@@ -30,7 +32,7 @@ Pre-built installers are available for:
 - Linux (.deb, .AppImage, .rpm)
 
 > [!NOTE]
-> Due to some inconsistencies in Tauri's current build system, all builds except AppImages suffer from a performance hit.
+> Due to some inconsistencies in Tauri's current build system, all Windows builds crash when displaying unpaginated 20K+ rows.
 
 Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases) to download the appropriate version.
 
@@ -81,6 +83,57 @@ The current version supports searching by:
 - Tags
 
 Tested to operate flawlessly on over 100,000+ rows, with room for more!
+
+### Custom Parsers
+
+PCPocket allows you to create custom parsers for importing data from various sources. This feature is designed for advanced users who want to integrate their own data formats into the application.
+To create a custom parser, follow these steps:
+
+1. Create a python script that reads your data source and outputs it to stdout in the following format:
+
+```json
+{
+  "successful": [
+    {
+      "title": "Bookmark Title" (optional),
+      "link": "https://example.com",
+      "icon_link": "https://example_icon.com" (optional),
+      "created_at": <UTC timestamp>,
+      "tags": ["tag1", "tag2"],
+    },
+    ...
+  ],
+  "failed": [
+    {
+      "index": <index of the failed item>,
+      "item": "Item that failed to parse",
+      "error": "Error message"
+    },
+    ...
+  ]
+}
+```
+
+2. Use the config options in app to add the parser to the list of parsers.
+   Or add your parser to the config file located at:
+
+```bash
+config/com.pcpocket.app/config.json
+(config is the standard config directory for your OS)
+
+# Format:
+{
+  "parsers": [
+    {
+      "name": "Parser Name",
+      "type": "python", (more types coming soon)
+      "path": "/path/to/your/parser.py",
+      "supportedFormats": ["file_format1", "file_format2"],
+    },
+    ...
+  ]
+}
+```
 
 ## License
 
