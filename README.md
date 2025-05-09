@@ -1,4 +1,4 @@
-# ![PCPocket Banner](https://github.com/user-attachments/assets/98e1ef3f-9e2d-47bc-8e6a-0a6f26b7ea36)
+# ![PcPocket Banner](https://github.com/user-attachments/assets/98e1ef3f-9e2d-47bc-8e6a-0a6f26b7ea36)
 
 A cross-platform, lightning fast and offline-first bookmark manager built with Tauri, React, and Vite.
 
@@ -38,7 +38,7 @@ Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases)
 
 ### Browser Extension
 
-The PCPocket extension is available for:
+The PcPocket extension is available for:
 
 - Edge, Brave, and other Chromium-based browsers
 - Zen, Waterfox, and other firefox based browsers
@@ -68,7 +68,7 @@ npm run tauri build
 
 ### Data Storage
 
-PCPocket uses SQLite for local storage, providing:
+PcPocket uses SQLite for local storage, providing:
 
 - Efficient data storage with minimal footprint
 - Fast search and retrieval operations
@@ -86,7 +86,7 @@ Tested to operate flawlessly on over 100,000+ rows, with room for more!
 
 ### Custom Parsers
 
-PCPocket allows you to create custom parsers for importing data from various sources. This feature is designed for advanced users who want to integrate their own data formats into the application.
+PcPocket allows you to create custom parsers for importing data from various sources. This feature is designed for advanced users who want to integrate their own data formats into the application.
 To create a custom parser, follow these steps:
 
 1. Create a python script that reads your data source and outputs it to stdout in the following format:
