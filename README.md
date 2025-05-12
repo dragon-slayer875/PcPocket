@@ -123,7 +123,7 @@ config/com.pcpocket.app/config.json
 
 # Format:
 {
-  "parsers": [
+  "custom_parsers": [
     {
       "name": "Parser Name",
       "type": "python", (more types coming soon)
