@@ -114,6 +114,7 @@ export function ParserForm({
                     <Input required placeholder="/path/to/parser" {...field} />
                     <Button
                       variant="outline"
+                      type="button"
                       className="ml-2"
                       onClick={async function () {
                         const path = await open();
@@ -141,6 +142,7 @@ export function ParserForm({
                     placeholder="xml,json"
                     {...field}
                     value={field.value.join(",")}
+                    required
                     onChange={(e) =>
                       field.onChange(transformSupportedFormatValue(e))
                     }
