@@ -14,12 +14,12 @@ PcPocket is a modern bookmark management solution designed to work seamlessly ac
 - **Browser Extension**: Available for Firefox and Chromium-based browsers (Chrome, Edge, Brave, Zen, Waterfox etc.)
 - **Offline-First**: All bookmarks stored locally in SQLite database
 - **Lightning fast**: Operate over 100,000+ bookmarks instantly
+- **Lightweight**: Minimal system resource usage
 - **Modern UI**: Built with React for a responsive and intuitive user experience
 - **Tag System**: Organize bookmarks with customizable tags and categories
 - **Quick Search**: Find bookmarks by title and tags
 - **Data Export/Import**: Seamlessly migrate from browser bookmarks
 - **Custom Parsers**: Use custom parsers to import data from your own sources
-- **Lightweight**: Minimal system resource usage
 - **Hotswappable Config**: Change settings without restarting the app
 
 ## Installation
@@ -32,7 +32,7 @@ Pre-built installers are available for:
 - Linux (.deb, .AppImage, .rpm)
 
 > [!NOTE]
-> Due to some inconsistencies in Tauri's current build system, all Windows builds crash when displaying unpaginated 20K+ rows.
+> Due to some inconsistencies in Tauri's current build system, all Windows builds crash when displaying unpaginated 20K+ rows. Paginated works as expected though. This issue is currently being looked into.
 
 Visit the [releases page](https://github.com/dragon-slayer875/PcPocket/releases) to download the appropriate version.
 
@@ -114,7 +114,21 @@ To create a custom parser, follow these steps:
 }
 ```
 
-2. Use the config options in app to add the parser to the list of parsers.
+2. Set PYTHONPATH environment variable to your standard python library before running the app.
+
+```bash
+# Linux/macOS
+# Replace X.Y with your Python version (e.g., 3.10, 3.11)
+export PYTHONPATH=/usr/lib/pythonX.Y:/usr/lib/pythonX.Y/lib-dynload
+```
+
+```cmd
+# Windows
+# Replace XY with your Python version (e.g., 310 for Python 3.10, 311 for Python 3.11)
+set PYTHONPATH=C:\PythonXY\Lib;C:\PythonXY\DLLs
+```
+
+3. Use the config options in app to add the parser to the list of parsers.
    Or add your parser to the config file located at:
 
 ```bash
