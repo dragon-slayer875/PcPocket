@@ -51,6 +51,7 @@ RUN dnf update -y && \
     npm \
     rust \
     cargo \
+    python3-devel \
     libappindicator-gtk3-devel \
     librsvg2-devel
 
