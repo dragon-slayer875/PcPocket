@@ -78,12 +78,14 @@ import { Input } from "../input";
 import { ShortcutsListDialog } from "@/components/shortcutsListDialog";
 
 export function DataTable() {
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 0,
-    pageSize: Number(localStorage.getItem("bookmarksTablePageSize")) || 10,
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    return {
+      pageIndex: 0,
+      pageSize: Number(localStorage.getItem("bookmarksTablePageSize")) || 10,
+    };
   });
   const [allBookmarks, setAllBookmarks] = useState<boolean>(
-    Boolean(localStorage.getItem("bookmarksTableAllRows")) || false,
+    () => Boolean(localStorage.getItem("bookmarksTableAllRows")) || false,
   );
   const [filterInput, setFilter] = useState<string | undefined>(undefined);
   const debouncedFilterInput = useDebounce(filterInput || "", 250);
@@ -217,8 +219,8 @@ export function DataTable() {
     setRowSelection(
       firstRow
         ? {
-            [firstRow.id]: true,
-          }
+          [firstRow.id]: true,
+        }
         : {},
     );
   }, [columnFilters]);
@@ -336,9 +338,9 @@ export function DataTable() {
                             {header.isPlaceholder
                               ? null
                               : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
                           </TableHead>
                         );
                       })}
@@ -400,7 +402,7 @@ function TableBodyVirtual({ table, tableContainerRef }: TableBodyVirtualProps) {
     //measure dynamic row height, except in firefox because it measures table border height incorrectly
     measureElement:
       typeof window !== "undefined" &&
-      navigator.userAgent.indexOf("Firefox") === -1
+        navigator.userAgent.indexOf("Firefox") === -1
         ? (element) => element?.getBoundingClientRect().height
         : undefined,
     overscan: 5,
